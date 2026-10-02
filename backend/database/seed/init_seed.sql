@@ -1,5 +1,5 @@
 -- 初始化种子数据: 种族 / 亚种 / 职业 / 门派职务 / 门派 / 字典 / 用户
--- 依赖 database/schema/init.sql 已执行(先建表, 再导数据)
+-- 依赖 backend/database/schema/init.sql 已执行(先建表, 再导数据)
 -- 使用方法: mysql -u root -p < init_seed.sql
 -- 说明: 均使用 INSERT IGNORE, 可重复执行, 不会覆盖已存在的数据
 

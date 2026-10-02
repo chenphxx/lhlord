@@ -16,9 +16,9 @@ pause
 exit /b 1
 :node_ok
 
-if exist "server\node_modules" goto :backend_ok
+if exist "backend\node_modules" goto :backend_ok
 echo [ERROR] 后端依赖未安装。
-echo 请先执行:  cd server  ^&^&  npm install
+echo 请先执行:  cd backend  ^&^&  npm install
 echo.
 pause
 exit /b 1
@@ -32,9 +32,9 @@ pause
 exit /b 1
 :frontend_ok
 
-if exist "server\.env" goto :env_ok
-copy "server\.env.example" "server\.env" >nul
-echo [HINT] 已生成 server\.env
+if exist "backend\.env" goto :env_ok
+copy "backend\.env.example" "backend\.env" >nul
+echo [HINT] 已生成 backend\.env
 echo 请编辑其中的 DB_PASSWORD 填入 MySQL 密码, 然后重新运行本脚本。
 echo.
 pause
@@ -46,7 +46,7 @@ netstat -ano | findstr LISTENING | findstr ":5173" >nul && echo [HINT] 端口 51
 echo.
 
 echo 启动后端 http://127.0.0.1:7100 ...
-start "lhlord-server" /d "%~dp0server" cmd /k "node src/index.js"
+start "lhlord-backend" /d "%~dp0backend" cmd /k "node src/index.js"
 
 echo 启动前端 http://localhost:5173 ...
 start "lhlord-frontend" /d "%~dp0frontend" cmd /k "npm.cmd run dev"

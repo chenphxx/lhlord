@@ -1,10 +1,12 @@
 ﻿# lhlord
 
+灵寰录(lhlord) 是一款修仙题材游戏的 Web 原型, 当前以 JS 实现各游戏模块, 后期再迁移到游戏引擎 
+
 ## 技术架构
 
 - 前端Vue3+Element Plus 
-
 - 后端Node.js+Express, 通过 RESTful API 读写 MySQL 
+- 数据库 MySQL, 建表与种子数据位于 `backend/database/` 
 
 ### 目录结构
 
@@ -14,53 +16,44 @@ lhlord/
 |   `-- src/
 |       |-- api/       # axios 封装
 |       |-- utils/     # 公共工具(字段类型常量等)
-|       `-- views/     # 页面组件(数据表浏览/增删改查)
-|-- server/          # Node.js + Express 后端, 提供 RESTful API
-|   `-- src/
-|       |-- index.js   # 服务入口
-|       |-- db.js      # MySQL 连接池(mysql2)
-|       `-- routes/    # 数据表 API 路由
-|-- database/        # SQL 建表与种子数据
-|   |-- schema/      # 建表脚本
-|   `-- seed/        # 种子数据
+|       `-- views/     # 页面组件(数据表浏览/炼丹系统)
+|-- backend/         # Node.js + Express 后端, 提供 RESTful API
+|   |-- src/
+|   |   |-- index.js   # 服务入口
+|   |   |-- db.js      # MySQL 连接池(mysql2)
+|   |   `-- routes/    # 管理后台/调试/炼丹 API 路由
+|   `-- database/      # SQL 建表与种子数据
+|       |-- schema/    # 建表脚本
+|       `-- seed/      # 种子数据
+|-- assets/          # 静态资源(界面截图等)
 |-- docs/            # 项目文档
-|   |-- 数据库设计.md  # MySQL 数据结构说明
-|   `-- 背景信息/      # 游戏设定(概述/境界/炼丹等)
+|   |-- 技术方案/      # 各模块技术方案
+|   `-- 背景信息/      # 游戏设定
+|-- start.bat        # 本地一键启动脚本
 |-- README.md
 |-- CHANGELOG.md
-|-- LICENSE
-`-- start.bat
+`-- LICENSE
 ```
 
-## 后端API
+## 文档
 
-| 方法     | 路径                                      | 说明                    |
-| ------ | --------------------------------------- | --------------------- |
-| GET    | /api/tables                             | 数据表列表                 |
-| POST   | /api/tables                             | 新建数据表                 |
-| GET    | /api/tables/:table                      | 表结构(字段/类型/主键/注释)      |
-| POST   | /api/tables/:table/columns              | 新增字段                  |
-| PUT    | /api/tables/:table/columns/:column      | 修改字段(改名/类型/可空/默认值/注释) |
-| DELETE | /api/tables/:table/columns/:column      | 删除字段                  |
-| GET    | /api/tables/:table/columns/:column/refs | 字段影响分析(同名字段/逻辑外键引用)   |
-| GET    | /api/tables/:table/data                 | 表数据(分页 + 模糊搜索)        |
-| POST   | /api/tables/:table                      | 新增记录                  |
-| POST   | /api/tables/:table/import               | 批量导入记录                |
-| PUT    | /api/tables/:table/:id                  | 按主键更新记录               |
-| DELETE | /api/tables/:table/:id                  | 按主键删除记录               |
-| GET    | /api/debug/databases                    | 可用数据库列表               |
-| POST   | /api/debug/use                          | 切换调试数据库               |
-| POST   | /api/debug/query                        | SQL 调试(仅只读语句)         |
+| 文档 | 说明 |
+| --- | --- |
+| [docs/技术方案/管理后台.md](docs/技术方案/管理后台.md) | 表结构与数据管理接口的技术方案 |
+| [docs/技术方案/炼丹系统.md](docs/技术方案/炼丹系统.md) | 炼丹, 丹药与灵田接口及前端交互的技术方案 |
+| [docs/技术方案/数据库设计.md](docs/技术方案/数据库设计.md) | MySQL 数据结构说明 |
+| [docs/背景信息/概述.md](docs/背景信息/概述.md) | 游戏设定总览 |
+| [CHANGELOG.md](CHANGELOG.md) | 功能变化记录 |
 
 ## 本地启动
 
-确保MySQL正在运行, `lhlord` 库已按 [database/schema/init.sql](database/schema/init.sql) 建表并导入种子数据 
+确保MySQL正在运行, `lhlord` 库已按 [backend/database/schema/init.sql](backend/database/schema/init.sql) 建表并导入种子数据 
 
 提供脚本[start.bat](start.bat)一键启动 
 
 ```bash
 # 1. 后端(端口 7100)
-cd server
+cd backend
 npm install
 copy .env.example .env   # 填入数据库账号密码
 npm run dev
@@ -75,8 +68,8 @@ npm run dev
 
 ## 数据库设计
 
-参见 [docs/数据库设计.md](docs/数据库设计.md) 
+参见 [docs/技术方案/数据库设计.md](docs/技术方案/数据库设计.md) 
 
-建表脚本位于 [database/schema/init.sql](database/schema/init.sql) 
+建表脚本位于 [backend/database/schema/init.sql](backend/database/schema/init.sql) 
 
-种子数据位于 [database/seed/init_seed.sql](database/seed/init_seed.sql) 与 [database/seed/item_seed.sql](database/seed/item_seed.sql) 
+种子数据位于 [backend/database/seed/init_seed.sql](backend/database/seed/init_seed.sql) 与 [backend/database/seed/item_seed.sql](backend/database/seed/item_seed.sql) 
