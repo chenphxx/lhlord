@@ -68,7 +68,7 @@ INSERT IGNORE INTO `class` (`class_id`, `class_code`, `class_name`, `class_descr
 (7, 'CLASS_FORMATION', '阵修', '精研阵法的阵道修士'),
 (8, 'CLASS_SPIRIT',    '神修', '专修神魂与神念的修士');
 
--- 境界(参考 background/境界.md)
+-- 境界(参考 docs/背景信息/境界.md)
 INSERT IGNORE INTO `realm` (`realm_id`, `realm_code`, `realm_name`, `realm_world`, `realm_level`, `realm_description`) VALUES
 -- 小世界(天道规则不完整, 最高化神)
 (1,  'REALM_LIANQI',    '炼气',   1, 1, '刚踏入修仙世界'),

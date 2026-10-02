@@ -21,15 +21,16 @@ lhlord/
 |       |-- db.js      # MySQL 连接池(mysql2)
 |       `-- routes/    # 数据表 API 路由
 |-- database/        # SQL 建表与种子数据
-|-- background/      # 游戏设定
+|   |-- schema/      # 建表脚本
+|   `-- seed/        # 种子数据
+|-- docs/            # 项目文档
+|   |-- 数据库设计.md  # MySQL 数据结构说明
+|   `-- 背景信息/      # 游戏设定(概述/境界/炼丹等)
 |-- README.md
-`-- CHANGELOG.md
+|-- CHANGELOG.md
+|-- LICENSE
+`-- start.bat
 ```
-
-## 当前功能
-
-- 炼丹系统V2026.8.16实装 
-- 初始化药材以及丹方 
 
 ## 后端API
 
@@ -74,7 +75,7 @@ npm run dev
 
 ## 数据库设计
 
-参见 [database/mysql.md](database/mysql.md) 
+参见 [docs/数据库设计.md](docs/数据库设计.md) 
 
 建表脚本位于 [database/schema/init.sql](database/schema/init.sql) 
 
