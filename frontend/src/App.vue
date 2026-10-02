@@ -65,6 +65,7 @@
                 <div class="topbar-right">
                     <span v-if="activeModule === 'tables'" class="db-chip">{{ tables.length }} 卷 · lhlord 库</span>
                     <el-tabs v-model="activeModule" class="module-tabs" @tab-change="onModuleTabChange">
+                        <el-tab-pane label="修行" name="player" />
                         <el-tab-pane label="炼丹系统" name="alchemy" />
                         <el-tab-pane label="管理后台" name="tables" />
                     </el-tabs>
@@ -75,7 +76,8 @@
             </el-header>
 
             <el-main class="main" :class="{ 'alchemy-main': activeModule === 'alchemy' }">
-                <AlchemyView v-if="activeModule === 'alchemy'" @open-admin="openTableAdmin" />
+                <GameView v-if="activeModule === 'player'" />
+                <AlchemyView v-else-if="activeModule === 'alchemy'" @open-admin="openTableAdmin" />
                 <TableData v-else-if="activeTable" :key="activeTable" :table-name="activeTable" />
                 <div v-else class="empty-wrap">
                     <el-empty description="从左侧卷宗选择一张数据表" />
@@ -177,12 +179,13 @@ import { ElMessage } from 'element-plus';
 import api from './api/index.js';
 import TableData from './views/TableData.vue';
 import AlchemyView from './views/AlchemyView.vue';
+import GameView from './views/GameView.vue';
 import { COLUMN_TYPES } from './utils/types.js';
 
 const tables = ref([]);
 const loadingTables = ref(false);
 const activeTable = ref('');
-const activeModule = ref('alchemy');
+const activeModule = ref('player');
 
 // 主题切换
 const isDark = ref(localStorage.getItem('lhlord-theme') === 'dark');
@@ -253,7 +256,11 @@ function openTableAdmin()
 
 function onModuleTabChange(name)
 {
-    if (name === 'alchemy')
+    if (name === 'player')
+    {
+        activeTable.value = '';
+    }
+    else if (name === 'alchemy')
     {
         openAlchemy();
     }

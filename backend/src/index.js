@@ -9,6 +9,7 @@ import 'dotenv/config';
 import tablesRouter from './routes/tables.js';
 import debugRouter from './routes/debug.js';
 import alchemyRouter from './routes/alchemy.js';
+import gameRouter from './routes/game.js';
 
 const app = express();
 
@@ -28,6 +29,7 @@ app.get('/api/health', (req, res) =>
 app.use('/api/tables', tablesRouter);
 app.use('/api/debug', debugRouter);
 app.use('/api/alchemy', alchemyRouter);
+app.use('/api/game', gameRouter);
 
 /**
  * @brief 统一错误处理中间件

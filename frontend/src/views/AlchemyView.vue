@@ -20,7 +20,7 @@
                     <span>修士命牌</span>
                 </div>
 
-                <el-select v-model="characterId" class="character-select" placeholder="选择炼丹修士" @change="onCharacterChange">
+                <el-select v-if="!isPlayerMode" v-model="characterId" class="character-select" placeholder="选择炼丹修士" @change="onCharacterChange">
                     <el-option
                         v-for="c in overview.characters"
                         :key="c.character_id"
@@ -28,39 +28,40 @@
                         :value="c.character_id"
                     />
                 </el-select>
+                <div v-else class="identity-lock">存档角色 · 丹炉取自行囊</div>
 
                 <div class="attribute-grid">
                     <div class="attribute-row">
                         <span>年龄</span>
-                        <el-input-number v-model="characterDetail.age" :min="1" :max="99999" controls-position="right" @change="saveAttributes" />
+                        <el-input-number v-model="characterDetail.age" :min="1" :max="99999" :disabled="isPlayerMode" controls-position="right" @change="saveAttributes" />
                     </div>
                     <div class="attribute-row">
                         <span>资质</span>
-                        <el-input-number v-model="characterDetail.attribute.aptitude" :min="0" :max="999" controls-position="right" @change="saveAttributes" />
+                        <el-input-number v-model="characterDetail.attribute.aptitude" :min="0" :max="999" :disabled="isPlayerMode" controls-position="right" @change="saveAttributes" />
                     </div>
                     <div class="attribute-row">
                         <span>悟性</span>
-                        <el-input-number v-model="characterDetail.attribute.comprehension" :min="0" :max="999" controls-position="right" @change="saveAttributes" />
+                        <el-input-number v-model="characterDetail.attribute.comprehension" :min="0" :max="999" :disabled="isPlayerMode" controls-position="right" @change="saveAttributes" />
                     </div>
                     <div class="attribute-row">
                         <span>金灵根</span>
-                        <el-input-number v-model="characterDetail.attribute.metal_root" :min="0" :max="100" controls-position="right" @change="saveAttributes" />
+                        <el-input-number v-model="characterDetail.attribute.metal_root" :min="0" :max="100" :disabled="isPlayerMode" controls-position="right" @change="saveAttributes" />
                     </div>
                     <div class="attribute-row">
                         <span>木灵根</span>
-                        <el-input-number v-model="characterDetail.attribute.wood_root" :min="0" :max="100" controls-position="right" @change="saveAttributes" />
+                        <el-input-number v-model="characterDetail.attribute.wood_root" :min="0" :max="100" :disabled="isPlayerMode" controls-position="right" @change="saveAttributes" />
                     </div>
                     <div class="attribute-row">
                         <span>水灵根</span>
-                        <el-input-number v-model="characterDetail.attribute.water_root" :min="0" :max="100" controls-position="right" @change="saveAttributes" />
+                        <el-input-number v-model="characterDetail.attribute.water_root" :min="0" :max="100" :disabled="isPlayerMode" controls-position="right" @change="saveAttributes" />
                     </div>
                     <div class="attribute-row">
                         <span>火灵根</span>
-                        <el-input-number v-model="characterDetail.attribute.fire_root" :min="0" :max="100" controls-position="right" @change="saveAttributes" />
+                        <el-input-number v-model="characterDetail.attribute.fire_root" :min="0" :max="100" :disabled="isPlayerMode" controls-position="right" @change="saveAttributes" />
                     </div>
                     <div class="attribute-row">
                         <span>土灵根</span>
-                        <el-input-number v-model="characterDetail.attribute.earth_root" :min="0" :max="100" controls-position="right" @change="saveAttributes" />
+                        <el-input-number v-model="characterDetail.attribute.earth_root" :min="0" :max="100" :disabled="isPlayerMode" controls-position="right" @change="saveAttributes" />
                     </div>
                 </div>
 
@@ -71,25 +72,25 @@
                 <div class="attribute-grid">
                     <div class="attribute-row">
                         <span>丹道</span>
-                        <el-input-number v-model="characterDetail.alchemy_skill.alchemy_level" :min="1" :max="12" controls-position="right" @change="saveAttributes" />
+                        <el-input-number v-model="characterDetail.alchemy_skill.alchemy_level" :min="1" :max="12" :disabled="isPlayerMode" controls-position="right" @change="saveAttributes" />
                     </div>
                     <div class="attribute-row">
                         <span>药理</span>
-                        <el-input-number v-model="characterDetail.alchemy_skill.pharmacology_level" :min="1" :max="12" controls-position="right" @change="saveAttributes" />
+                        <el-input-number v-model="characterDetail.alchemy_skill.pharmacology_level" :min="1" :max="12" :disabled="isPlayerMode" controls-position="right" @change="saveAttributes" />
                     </div>
                     <div class="attribute-row">
                         <span>控火</span>
-                        <el-input-number v-model="characterDetail.alchemy_skill.fire_control_level" :min="1" :max="12" controls-position="right" @change="saveAttributes" />
+                        <el-input-number v-model="characterDetail.alchemy_skill.fire_control_level" :min="1" :max="12" :disabled="isPlayerMode" controls-position="right" @change="saveAttributes" />
                     </div>
                     <div class="attribute-row">
                         <span>耐药</span>
-                        <el-input-number v-model="characterDetail.alchemy_skill.tolerance_level" :min="0" :max="12" controls-position="right" @change="saveAttributes" />
+                        <el-input-number v-model="characterDetail.alchemy_skill.tolerance_level" :min="0" :max="12" :disabled="isPlayerMode" controls-position="right" @change="saveAttributes" />
                     </div>
                 </div>
 
                 <div class="toxin-row">
                     <span>当前丹毒</span>
-                    <el-input-number v-model="characterDetail.toxin_value" :min="0" :max="999" controls-position="right" @change="saveAttributes" />
+                    <el-input-number v-model="characterDetail.toxin_value" :min="0" :max="999" :disabled="isPlayerMode" controls-position="right" @change="saveAttributes" />
                 </div>
 
             </div>
@@ -125,17 +126,18 @@
                 <div class="furnace-controls">
                     <el-select v-model="furnaceItemId" placeholder="选择丹炉" style="width: 200px" @change="resetFurnaceQuality">
                         <el-option
-                            v-for="f in overview.furnaces"
+                            v-for="f in availableFurnaces"
                             :key="f.item_id"
                             :label="`${f.item_name} · 耐久 ${f.durability}`"
                             :value="f.item_id"
                         />
                     </el-select>
-                    <div class="quality-row">
+                    <el-empty v-if="availableFurnaces.length === 0" description="行囊中没有丹炉" :image-size="60" />
+                    <div v-if="!isPlayerMode" class="quality-row">
                         <span>丹炉品质</span>
                         <el-input-number v-model="furnaceQuality" :min="1" :max="12" controls-position="right" @change="saveFurnaceQuality" />
                     </div>
-                    <div class="quality-row">
+                    <div v-if="!isPlayerMode" class="quality-row">
                         <span>火候稳定</span>
                         <el-input-number v-model="furnaceHeat" :min="0" :max="20" controls-position="right" @change="saveFurnaceQuality" />
                     </div>
@@ -364,12 +366,29 @@ import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { ElMessage } from 'element-plus';
 import api from '../api/index.js';
 
-defineEmits(['open-admin']);
+const props = defineProps({
+    playerCharacterId: { type: Number, default: 0 },
+    ownFurnaceIds: { type: Array, default: () => [] },
+});
+const emit = defineEmits(['open-admin', 'crafted']);
 
 const SIM_INVENTORY_CHARACTER_ID = 2;
 const overview = reactive({ characters: [], recipes: [], furnaces: [] });
 const alchemyTab = ref('studio');
-const characterId = ref(2);
+/**
+ * @brief 是否处于玩家模式
+ *
+ * 玩家模式下角色与背包都由存档决定, 丹炉只允许使用已持有的, 命牌属性仅供查看
+ */
+const isPlayerMode = computed(() => props.playerCharacterId > 0);
+const storageCharacterId = computed(() => props.playerCharacterId || SIM_INVENTORY_CHARACTER_ID);
+const availableFurnaces = computed(() =>
+{
+    if (!isPlayerMode.value) return overview.furnaces;
+    const owned = props.ownFurnaceIds.map((id) => Number(id));
+    return overview.furnaces.filter((furnace) => owned.includes(Number(furnace.item_id)));
+});
+const characterId = ref(props.playerCharacterId || 2);
 const recipeId = ref(null);
 const furnaceItemId = ref(null);
 const batchCount = ref(1);
@@ -579,9 +598,9 @@ async function loadOverview()
     {
         recipeId.value = overview.recipes[0].recipe_id;
     }
-    if (!furnaceItemId.value && overview.furnaces.length > 0)
+    if (!furnaceItemId.value && availableFurnaces.value.length > 0)
     {
-        furnaceItemId.value = overview.furnaces[0].item_id;
+        furnaceItemId.value = availableFurnaces.value[0].item_id;
         syncFurnaceQuality();
     }
 }
@@ -597,14 +616,14 @@ async function loadCharacter()
 }
 
 /**
- * @brief 加载模拟角色的背包
+ * @brief 加载背包, 玩家模式取存档角色的背包, 否则取模拟角色的背包
  */
 async function loadInventory()
 {
     loadingInventory.value = true;
     try
     {
-        const { data } = await api.get('/alchemy/inventory', { params: { characterId: SIM_INVENTORY_CHARACTER_ID } });
+        const { data } = await api.get('/alchemy/inventory', { params: { characterId: storageCharacterId.value } });
         inventory.value = data.data;
     }
     finally
@@ -830,7 +849,7 @@ async function autoFill()
     const { data } = await api.get('/alchemy/plan', {
         params: {
             characterId: characterId.value,
-            inventoryCharacterId: SIM_INVENTORY_CHARACTER_ID,
+            inventoryCharacterId: storageCharacterId.value,
             recipeId: recipeId.value,
             furnaceItemId: furnaceItemId.value,
             batchCount: batchCount.value,
@@ -872,7 +891,7 @@ async function loadPlan()
         {
             const { data } = await api.post('/alchemy/plan', {
                 characterId: characterId.value,
-                inventoryCharacterId: SIM_INVENTORY_CHARACTER_ID,
+                inventoryCharacterId: storageCharacterId.value,
                 recipeId: recipeId.value || 0,
                 furnaceItemId: furnaceItemId.value,
                 batchCount: batchCount.value,
@@ -885,7 +904,7 @@ async function loadPlan()
             const { data } = await api.get('/alchemy/plan', {
                 params: {
                     characterId: characterId.value,
-                    inventoryCharacterId: SIM_INVENTORY_CHARACTER_ID,
+                    inventoryCharacterId: storageCharacterId.value,
                     recipeId: recipeId.value || 0,
                     furnaceItemId: furnaceItemId.value,
                     batchCount: batchCount.value,
@@ -924,7 +943,7 @@ async function doCraft()
     {
         const payload = {
             characterId: characterId.value,
-            inventoryCharacterId: SIM_INVENTORY_CHARACTER_ID,
+            inventoryCharacterId: storageCharacterId.value,
             recipeId: recipeId.value || 0,
             furnaceItemId: furnaceItemId.value,
             batchCount: batchCount.value,
@@ -943,6 +962,7 @@ async function doCraft()
         notify('success', `炼丹完成: ${data.data.outcome} / ${data.data.quality}`);
         await loadInventory();
         selectedIngredients.value = [];
+        emit('crafted', data.data);
     }
     catch (err)
     {
@@ -1162,6 +1182,14 @@ onMounted(async () =>
 }
 .character-select {
     width: 100%;
+}
+.identity-lock {
+    padding: 6px 9px;
+    border-radius: 5px;
+    border: 1px dashed var(--lhl-line);
+    font-size: 12px;
+    color: var(--lhl-text-2);
+    text-align: center;
 }
 .attribute-grid {
     display: flex;
