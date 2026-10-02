@@ -5,175 +5,175 @@
    ============================================================ */
 
 :root {
-  /* Element Plus 主色覆写 */
-  --el-color-primary: #2c8c7a;
-  --el-color-primary-light-3: #63aaa0;
-  --el-color-primary-light-5: #8fc2b9;
-  --el-color-primary-light-7: #bcdad4;
-  --el-color-primary-light-8: #d3e7e2;
-  --el-color-primary-light-9: #e9f3f0;
-  --el-color-primary-dark-2: #23705f;
-  --el-color-danger: #b5432e;
-  --el-color-danger-light-3: #ce7767;
-  --el-color-danger-light-5: #dea398;
-  --el-color-danger-light-7: #efcfc9;
-  --el-color-danger-light-8: #f4dfdb;
-  --el-color-danger-light-9: #faefed;
-  --el-color-success: #2c8c7a;
-  --el-color-warning: #c9a227;
-  --el-color-info: #5c6b68;
-  --el-border-radius-base: 4px;
-  --el-font-family: 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', -apple-system,
-    'Segoe UI', sans-serif;
-  --el-text-color-primary: #22302e;
-  --el-text-color-regular: #3a4a47;
-  --el-text-color-secondary: #5c6b68;
-  --el-border-color: #d5e1dd;
-  --el-border-color-light: #dfe8e5;
-  --el-border-color-lighter: #e7eeec;
-  --el-fill-color-blank: #fcfefd;
-  --el-bg-color: #fcfefd;
-  --el-bg-color-page: #eaf1ee;
-  --el-bg-color-overlay: #fcfefd;
+    /* Element Plus 主色覆写 */
+    --el-color-primary: #2c8c7a;
+    --el-color-primary-light-3: #63aaa0;
+    --el-color-primary-light-5: #8fc2b9;
+    --el-color-primary-light-7: #bcdad4;
+    --el-color-primary-light-8: #d3e7e2;
+    --el-color-primary-light-9: #e9f3f0;
+    --el-color-primary-dark-2: #23705f;
+    --el-color-danger: #b5432e;
+    --el-color-danger-light-3: #ce7767;
+    --el-color-danger-light-5: #dea398;
+    --el-color-danger-light-7: #efcfc9;
+    --el-color-danger-light-8: #f4dfdb;
+    --el-color-danger-light-9: #faefed;
+    --el-color-success: #2c8c7a;
+    --el-color-warning: #c9a227;
+    --el-color-info: #5c6b68;
+    --el-border-radius-base: 4px;
+    --el-font-family: 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', -apple-system,
+        'Segoe UI', sans-serif;
+    --el-text-color-primary: #22302e;
+    --el-text-color-regular: #3a4a47;
+    --el-text-color-secondary: #5c6b68;
+    --el-border-color: #d5e1dd;
+    --el-border-color-light: #dfe8e5;
+    --el-border-color-lighter: #e7eeec;
+    --el-fill-color-blank: #fcfefd;
+    --el-bg-color: #fcfefd;
+    --el-bg-color-page: #eaf1ee;
+    --el-bg-color-overlay: #fcfefd;
 
-  /* 自定义令牌 */
-  --lhl-ink: #0d1b1e;
-  --lhl-ink-soft: #152629;
-  --lhl-ink-line: rgba(255, 255, 255, 0.1);
-  --lhl-paper: #eaf1ee;
-  --lhl-panel: #fcfefd;
-  --lhl-line: #d5e1dd;
-  --lhl-jade: #2c8c7a;
-  --lhl-jade-deep: #1f6a5c;
-  --lhl-jade-soft: #e3f1ec;
-  --lhl-cinnabar: #b5432e;
-  --lhl-cinnabar-soft: #f6e8e4;
-  --lhl-gold: #c9a227;
-  --lhl-text: #22302e;
-  --lhl-text-2: #5c6b68;
-  --lhl-text-3: #8a9894;
-  --lhl-font-display: 'STKaiti', 'KaiTi', '楷体', 'Kaiti SC', serif;
-  --lhl-font-body: 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', -apple-system,
-    'Segoe UI', sans-serif;
-  --lhl-font-mono: 'Cascadia Code', 'JetBrains Mono', 'SFMono-Regular', Consolas,
-    'Liberation Mono', monospace;
-  --lhl-shadow: 0 1px 3px rgba(13, 27, 30, 0.06), 0 6px 18px rgba(13, 27, 30, 0.05);
+    /* 自定义令牌 */
+    --lhl-ink: #0d1b1e;
+    --lhl-ink-soft: #152629;
+    --lhl-ink-line: rgba(255, 255, 255, 0.1);
+    --lhl-paper: #eaf1ee;
+    --lhl-panel: #fcfefd;
+    --lhl-line: #d5e1dd;
+    --lhl-jade: #2c8c7a;
+    --lhl-jade-deep: #1f6a5c;
+    --lhl-jade-soft: #e3f1ec;
+    --lhl-cinnabar: #b5432e;
+    --lhl-cinnabar-soft: #f6e8e4;
+    --lhl-gold: #c9a227;
+    --lhl-text: #22302e;
+    --lhl-text-2: #5c6b68;
+    --lhl-text-3: #8a9894;
+    --lhl-font-display: 'STKaiti', 'KaiTi', '楷体', 'Kaiti SC', serif;
+    --lhl-font-body: 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', -apple-system,
+        'Segoe UI', sans-serif;
+    --lhl-font-mono: 'Cascadia Code', 'JetBrains Mono', 'SFMono-Regular', Consolas,
+        'Liberation Mono', monospace;
+    --lhl-shadow: 0 1px 3px rgba(13, 27, 30, 0.06), 0 6px 18px rgba(13, 27, 30, 0.05);
 
-  /* 侧栏: 浅色模式使用月白/竹青, 深色模式使用玄墨 */
-  --lhl-aside-from: #eef4f1;
-  --lhl-aside-to: #dce9e5;
-  --lhl-aside-text: #22302e;
-  --lhl-aside-text-strong: #101c1f;
-  --lhl-aside-text-muted: rgba(34, 48, 46, 0.62);
-  --lhl-aside-text-faint: rgba(34, 48, 46, 0.38);
-  --lhl-aside-border: rgba(13, 27, 30, 0.1);
-  --lhl-aside-hover: rgba(44, 140, 122, 0.08);
-  --lhl-aside-active-from: rgba(44, 140, 122, 0.18);
-  --lhl-aside-active-to: rgba(44, 140, 122, 0.05);
+    /* 侧栏: 浅色模式使用月白/竹青, 深色模式使用玄墨 */
+    --lhl-aside-from: #eef4f1;
+    --lhl-aside-to: #dce9e5;
+    --lhl-aside-text: #22302e;
+    --lhl-aside-text-strong: #101c1f;
+    --lhl-aside-text-muted: rgba(34, 48, 46, 0.62);
+    --lhl-aside-text-faint: rgba(34, 48, 46, 0.38);
+    --lhl-aside-border: rgba(13, 27, 30, 0.1);
+    --lhl-aside-hover: rgba(44, 140, 122, 0.08);
+    --lhl-aside-active-from: rgba(44, 140, 122, 0.18);
+    --lhl-aside-active-to: rgba(44, 140, 122, 0.05);
 }
 
 html.dark {
-  /* 深色配色对齐 phxxblog 的 "workbench night" */
-  --el-color-primary: #2dd4bf;
-  --el-color-primary-light-3: #57dfcf;
-  --el-color-primary-light-5: #82e8dc;
-  --el-color-primary-light-7: #acf1e9;
-  --el-color-primary-light-8: #c1f5ee;
-  --el-color-primary-light-9: #d5f9f4;
-  --el-color-primary-dark-2: #24aa9a;
-  --el-color-danger: #f87171;
-  --el-color-warning: #fbbf24;
-  --el-color-success: #2dd4bf;
-  --el-text-color-primary: #e6edf3;
-  --el-text-color-regular: #c3cdd6;
-  --el-text-color-secondary: #8b98a5;
-  --el-border-color: #35404d;
-  --el-border-color-light: #28303a;
-  --el-border-color-lighter: #232c36;
-  --el-bg-color: #161d26;
-  --el-bg-color-page: #0f141a;
-  --el-bg-color-overlay: #1c242f;
-  --el-fill-color: #1a222c;
-  --el-fill-color-light: #1d2631;
-  --el-fill-color-lighter: #212b37;
+    /* 深色配色对齐 phxxblog 的 "workbench night" */
+    --el-color-primary: #2dd4bf;
+    --el-color-primary-light-3: #57dfcf;
+    --el-color-primary-light-5: #82e8dc;
+    --el-color-primary-light-7: #acf1e9;
+    --el-color-primary-light-8: #c1f5ee;
+    --el-color-primary-light-9: #d5f9f4;
+    --el-color-primary-dark-2: #24aa9a;
+    --el-color-danger: #f87171;
+    --el-color-warning: #fbbf24;
+    --el-color-success: #2dd4bf;
+    --el-text-color-primary: #e6edf3;
+    --el-text-color-regular: #c3cdd6;
+    --el-text-color-secondary: #8b98a5;
+    --el-border-color: #35404d;
+    --el-border-color-light: #28303a;
+    --el-border-color-lighter: #232c36;
+    --el-bg-color: #161d26;
+    --el-bg-color-page: #0f141a;
+    --el-bg-color-overlay: #1c242f;
+    --el-fill-color: #1a222c;
+    --el-fill-color-light: #1d2631;
+    --el-fill-color-lighter: #212b37;
 
-  --lhl-paper: #0f141a;
-  --lhl-panel: #161d26;
-  --lhl-line: #28303a;
-  --lhl-jade: #2dd4bf;
-  --lhl-jade-deep: #5eead4;
-  --lhl-jade-soft: #12312e;
-  --lhl-cinnabar: #f87171;
-  --lhl-cinnabar-soft: #2d1a17;
-  --lhl-gold: #fbbf24;
-  --lhl-text: #e6edf3;
-  --lhl-text-2: #8b98a5;
-  --lhl-text-3: #64707c;
-  --lhl-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+    --lhl-paper: #0f141a;
+    --lhl-panel: #161d26;
+    --lhl-line: #28303a;
+    --lhl-jade: #2dd4bf;
+    --lhl-jade-deep: #5eead4;
+    --lhl-jade-soft: #12312e;
+    --lhl-cinnabar: #f87171;
+    --lhl-cinnabar-soft: #2d1a17;
+    --lhl-gold: #fbbf24;
+    --lhl-text: #e6edf3;
+    --lhl-text-2: #8b98a5;
+    --lhl-text-3: #64707c;
+    --lhl-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
 
-  --lhl-aside-from: #10161d;
-  --lhl-aside-to: #0b1016;
-  --lhl-aside-text: #e6edf3;
-  --lhl-aside-text-strong: #f4f8fa;
-  --lhl-aside-text-muted: rgba(230, 238, 236, 0.55);
-  --lhl-aside-text-faint: rgba(230, 238, 236, 0.35);
-  --lhl-aside-border: rgba(255, 255, 255, 0.08);
-  --lhl-aside-hover: rgba(255, 255, 255, 0.055);
-  --lhl-aside-active-from: rgba(45, 212, 191, 0.2);
-  --lhl-aside-active-to: rgba(45, 212, 191, 0.07);
+    --lhl-aside-from: #10161d;
+    --lhl-aside-to: #0b1016;
+    --lhl-aside-text: #e6edf3;
+    --lhl-aside-text-strong: #f4f8fa;
+    --lhl-aside-text-muted: rgba(230, 238, 236, 0.55);
+    --lhl-aside-text-faint: rgba(230, 238, 236, 0.35);
+    --lhl-aside-border: rgba(255, 255, 255, 0.08);
+    --lhl-aside-hover: rgba(255, 255, 255, 0.055);
+    --lhl-aside-active-from: rgba(45, 212, 191, 0.2);
+    --lhl-aside-active-to: rgba(45, 212, 191, 0.07);
 }
 
 body {
-  font-family: var(--lhl-font-body);
-  -webkit-font-smoothing: antialiased;
+    font-family: var(--lhl-font-body);
+    -webkit-font-smoothing: antialiased;
 }
 
 /* 滚动条 */
 ::-webkit-scrollbar {
-  width: 9px;
-  height: 9px;
+    width: 9px;
+    height: 9px;
 }
 ::-webkit-scrollbar-thumb {
-  background: #b4c7c2;
-  border-radius: 5px;
-  border: 2px solid transparent;
-  background-clip: content-box;
+    background: #b4c7c2;
+    border-radius: 5px;
+    border: 2px solid transparent;
+    background-clip: content-box;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--lhl-jade);
-  background-clip: content-box;
+    background: var(--lhl-jade);
+    background-clip: content-box;
 }
 html.dark ::-webkit-scrollbar-thumb {
-  background: #35404d;
-  background-clip: content-box;
+    background: #35404d;
+    background-clip: content-box;
 }
 html.dark ::-webkit-scrollbar-thumb:hover {
-  background: var(--lhl-jade);
-  background-clip: content-box;
+    background: var(--lhl-jade);
+    background-clip: content-box;
 }
 
 /* 玉简风格数据表: 表头翠玉底 + 玉青下线, 悬停行玉青洗 */
 .lhl-table .el-table__header-wrapper th.el-table__cell,
 .lhl-table .el-table__fixed-header-wrapper th.el-table__cell {
-  background: var(--lhl-jade-soft);
-  color: var(--lhl-jade-deep);
-  font-family: var(--lhl-font-mono);
-  font-weight: 600;
-  letter-spacing: 0.3px;
-  border-bottom: 2px solid var(--lhl-jade);
+    background: var(--lhl-jade-soft);
+    color: var(--lhl-jade-deep);
+    font-family: var(--lhl-font-mono);
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    border-bottom: 2px solid var(--lhl-jade);
 }
 .lhl-table .el-table__row:hover > td.el-table__cell {
-  background: var(--lhl-jade-soft) !important;
+    background: var(--lhl-jade-soft) !important;
 }
 .lhl-table .el-table__inner-wrapper::before {
-  display: none;
+    display: none;
 }
 
 /* 数据字体: 数字/符号/字母统一使用 Cascadia Code, 中文回退黑体 */
 .lhl-table td.el-table__cell {
-  font-family: var(--lhl-font-mono), var(--lhl-font-body);
+    font-family: var(--lhl-font-mono), var(--lhl-font-body);
 }
 .el-input__inner,
 .el-textarea__inner {
-  font-family: var(--lhl-font-mono), var(--lhl-font-body);
+    font-family: var(--lhl-font-mono), var(--lhl-font-body);
 }

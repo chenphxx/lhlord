@@ -1,14 +1,19 @@
 import mysql from 'mysql2/promise';
 import 'dotenv/config';
 
+/**
+ * @brief MySQL 连接池
+ *
+ * 连接参数取自环境变量, 供各业务路由共享复用
+ */
 export const pool = mysql.createPool({
-  host: process.env.DB_HOST || '127.0.0.1',
-  port: Number(process.env.DB_PORT || 3306),
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'lhlord',
-  waitForConnections: true,
-  connectionLimit: 10,
-  charset: 'utf8mb4',
-  namedPlaceholders: true,
+    host: process.env.DB_HOST || '127.0.0.1',
+    port: Number(process.env.DB_PORT || 3306),
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || '',
+    database: process.env.DB_NAME || 'lhlord',
+    waitForConnections: true,
+    connectionLimit: 10,
+    charset: 'utf8mb4',
+    namedPlaceholders: true,
 });

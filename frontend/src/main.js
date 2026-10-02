@@ -1,3 +1,8 @@
+/**
+ * @brief 前端应用入口
+ *
+ * 创建 Vue 应用并注册 Element Plus 与中文语言包
+ */
 import { createApp } from 'vue';
 import ElementPlus from 'element-plus';
 import zhCn from 'element-plus/es/locale/lang/zh-cn';
