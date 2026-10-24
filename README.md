@@ -5,7 +5,7 @@
 ## 功能
 
 - **修行**, 探索可获取草药与灵石; 修行可获得修为; 修为满后可尝试突破 
-- **炼丹房**, 可根据单方或者自行搭配药材探索新的单方 
+- **炼丹房**, 可根据单方或者自行搭配药材探索新的单方
 
 ## 快速开始
 
@@ -15,7 +15,13 @@
 
 - 执行`schema/`下的`alchemy.sql`与`game.sql` 
 
-- 执行`seed/`下的`alchemy_seed.sql`与`item_seed.sql`
+- 执行`seed/`下的`alchemy_seed.sql`与`item_seed.sql` 
+
+例如: 
+
+```sql
+source D:/Projects/lhlord/backend/database/seed/init_seed.sql;
+```
 
 ### 后端
 
