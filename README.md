@@ -17,9 +17,12 @@
 
 - 执行`seed/`下的`alchemy_seed.sql`与`item_seed.sql` 
 
+导入前请以 `utf8mb4` 连接数据库, 避免中文数据及表字段注释乱码 
+
 例如: 
 
 ```sql
+mysql --default-character-set=utf8mb4 -u root -p
 source D:/Projects/lhlord/backend/database/seed/init_seed.sql;
 ```
 

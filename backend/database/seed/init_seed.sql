@@ -1,3 +1,5 @@
+SET NAMES utf8mb4;
+
 -- 初始化种子数据: 种族 / 亚种 / 职业 / 门派职务 / 门派 / 字典 / 用户
 -- 依赖 backend/database/schema/init.sql 已执行(先建表, 再导数据)
 -- 使用方法: mysql -u root -p < init_seed.sql
