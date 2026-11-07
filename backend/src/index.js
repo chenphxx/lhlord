@@ -10,6 +10,7 @@ import tablesRouter from './routes/tables.js';
 import debugRouter from './routes/debug.js';
 import alchemyRouter from './routes/alchemy.js';
 import gameRouter from './routes/game.js';
+import adminRouter from './routes/admin.js';
 
 const app = express();
 
@@ -30,6 +31,7 @@ app.use('/api/tables', tablesRouter);
 app.use('/api/debug', debugRouter);
 app.use('/api/alchemy', alchemyRouter);
 app.use('/api/game', gameRouter);
+app.use('/api/admin', adminRouter);
 
 /**
  * @brief 统一错误处理中间件
