@@ -112,7 +112,6 @@ CREATE TABLE IF NOT EXISTS `character` (
     `gender` TINYINT DEFAULT NULL COMMENT '角色性别(1-男 2-女, 见 sys_dict gender)',
     `age` INT DEFAULT NULL COMMENT '角色年龄',
     `race_id` BIGINT DEFAULT NULL COMMENT '种族id(逻辑外键: race.race_id)',
-    `race_subsp_id` BIGINT DEFAULT NULL COMMENT '亚种id(逻辑外键: race_subspecies.race_subspecies_id)',
     `class_id` BIGINT DEFAULT NULL COMMENT '职业id(逻辑外键: class.class_id)',
     `realm_id` BIGINT DEFAULT NULL COMMENT '境界id(逻辑外键: realm.realm_id)',
     `character_description` VARCHAR(255) DEFAULT NULL COMMENT '角色描述',
@@ -129,6 +128,12 @@ CREATE TABLE IF NOT EXISTS `race` (
     `race_code` CHAR(64) DEFAULT NULL COMMENT '种族编码',
     `race_name` CHAR(64) DEFAULT NULL COMMENT '种族名称',
     `race_description` VARCHAR(255) DEFAULT NULL COMMENT '种族描述',
+    `aptitude_bonus` INT DEFAULT 0 COMMENT '资质加成',
+    `comprehension_bonus` INT DEFAULT 0 COMMENT '悟性加成',
+    `max_hp_bonus` INT DEFAULT 0 COMMENT '气血加成',
+    `attack_bonus` INT DEFAULT 0 COMMENT '攻击加成',
+    `defense_bonus` INT DEFAULT 0 COMMENT '防御加成',
+    `cultivation_bonus` INT DEFAULT 0 COMMENT '修炼效率加成(百分比)',
     `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     `create_by` BIGINT DEFAULT NULL COMMENT '创建人',
@@ -136,19 +141,33 @@ CREATE TABLE IF NOT EXISTS `race` (
     PRIMARY KEY (`race_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='种族表';
 
--- 种族的亚种分类
-CREATE TABLE IF NOT EXISTS `race_subspecies` (
-    `race_subspecies_id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '亚种id',
-    `race_id` BIGINT DEFAULT NULL COMMENT '所属种族id(逻辑外键: race.race_id)',
-    `race_subspecies_code` CHAR(64) DEFAULT NULL COMMENT '亚种编码',
-    `race_subspecies_name` VARCHAR(255) DEFAULT NULL COMMENT '亚种名称',
-    `race_subspecies_description` VARCHAR(255) DEFAULT NULL COMMENT '亚种描述',
+-- 天赋
+CREATE TABLE IF NOT EXISTS `talent` (
+    `talent_id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '天赋id',
+    `talent_code` CHAR(64) NOT NULL COMMENT '天赋编码',
+    `talent_name` CHAR(64) NOT NULL COMMENT '天赋名称',
+    `talent_description` VARCHAR(255) DEFAULT NULL COMMENT '天赋描述',
+    `rarity` VARCHAR(16) DEFAULT '凡品' COMMENT '天赋稀有度',
+    `aptitude_bonus` INT DEFAULT 0 COMMENT '资质加成',
+    `comprehension_bonus` INT DEFAULT 0 COMMENT '悟性加成',
+    `max_hp_bonus` INT DEFAULT 0 COMMENT '气血加成',
+    `attack_bonus` INT DEFAULT 0 COMMENT '攻击加成',
+    `defense_bonus` INT DEFAULT 0 COMMENT '防御加成',
+    `cultivation_bonus` INT DEFAULT 0 COMMENT '修炼效率加成(百分比)',
+    `alchemy_bonus` INT DEFAULT 0 COMMENT '炼丹效率加成(百分比)',
     `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    `create_by` BIGINT DEFAULT NULL COMMENT '创建人',
-    `update_by` BIGINT DEFAULT NULL COMMENT '更新人',
-    PRIMARY KEY (`race_subspecies_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='亚种分类表';
+    PRIMARY KEY (`talent_id`),
+    UNIQUE KEY `uk_talent_code` (`talent_code`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='天赋定义表';
+
+-- 角色天赋
+CREATE TABLE IF NOT EXISTS `character_talent` (
+    `character_id` BIGINT NOT NULL COMMENT '角色id(逻辑外键: character.character_id)',
+    `talent_id` BIGINT NOT NULL COMMENT '天赋id(逻辑外键: talent.talent_id)',
+    `acquired_at` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '获得时间',
+    PRIMARY KEY (`character_id`, `talent_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='角色天赋关系表';
 
 -- 门派
 CREATE TABLE IF NOT EXISTS `sect` (

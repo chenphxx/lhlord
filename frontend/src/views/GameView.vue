@@ -10,30 +10,89 @@
                 <h1 class="start-title">灵寰录</h1>
                 <p class="start-copy">
                     你在一座无名山腰醒来, 丹田空空, 只余一缕灵气游走经脉
-                    取一个道号, 从此踏入仙途
+                    选择这一世的种族, 灵根与天赋, 从此踏入仙途
                 </p>
-                <form class="start-form" @submit.prevent="startGame">
-                    <label class="start-label" for="dao-name">道号</label>
-                    <el-input
-                        id="dao-name"
-                        v-model="startName"
-                        maxlength="16"
-                        show-word-limit
-                        placeholder="如: 云中客"
-                        size="large"
-                        @keyup.enter="startGame"
-                    />
+                <el-form class="creation-form" label-position="top" @submit.prevent="startGame">
+                    <div class="creation-grid">
+                        <el-form-item label="道号" required>
+                            <el-input
+                                v-model="startForm.name"
+                                maxlength="16"
+                                show-word-limit
+                                placeholder="如: 云中客"
+                                size="large"
+                            />
+                        </el-form-item>
+                        <el-form-item label="性别" required>
+                            <el-radio-group v-model="startForm.gender">
+                                <el-radio-button :label="1">男</el-radio-button>
+                                <el-radio-button :label="2">女</el-radio-button>
+                            </el-radio-group>
+                        </el-form-item>
+                        <el-form-item label="种族" required>
+                            <el-select v-model="startForm.raceId" placeholder="选择种族" style="width: 100%">
+                                <el-option v-for="race in creationOptions.races" :key="race.race_id" :label="race.race_name" :value="race.race_id" />
+                            </el-select>
+                        </el-form-item>
+                        <el-form-item label="职业" required>
+                            <el-select v-model="startForm.classId" placeholder="选择职业" style="width: 100%">
+                                <el-option v-for="item in creationOptions.classes" :key="item.class_id" :label="item.class_name" :value="item.class_id" />
+                            </el-select>
+                        </el-form-item>
+                    </div>
+
+                    <div v-if="selectedRace" class="race-note">
+                        <strong>{{ selectedRace.race_name }}</strong>
+                        <span>{{ selectedRace.race_description }}</span>
+                        <small>{{ raceBonusText(selectedRace) }}</small>
+                    </div>
+
+                    <div class="choice-title">
+                        <span>选择灵根</span>
+                        <small>所选灵根均分 100 点</small>
+                    </div>
+                    <div class="root-options">
+                        <button
+                            v-for="root in rootOptions"
+                            :key="root.key"
+                            type="button"
+                            :class="{ active: startForm.rootElements.includes(root.key) }"
+                            @click="toggleRoot(root.key)"
+                        >
+                            {{ root.label }}
+                        </button>
+                    </div>
+
+                    <div class="choice-title">
+                        <span>选择天赋</span>
+                        <small>已选 {{ startForm.talentIds.length }} / {{ creationOptions.maxTalents }}</small>
+                    </div>
+                    <div class="talent-options">
+                        <button
+                            v-for="talent in creationOptions.talents"
+                            :key="talent.talent_id"
+                            type="button"
+                            class="talent-option"
+                            :class="{ active: startForm.talentIds.includes(talent.talent_id) }"
+                            :disabled="startForm.talentIds.length >= creationOptions.maxTalents && !startForm.talentIds.includes(talent.talent_id)"
+                            @click="toggleTalent(talent.talent_id)"
+                        >
+                            <span>{{ talent.talent_name }}</span>
+                            <small>{{ talent.talent_description }}</small>
+                        </button>
+                    </div>
+
                     <el-button
                         type="primary"
                         size="large"
                         class="start-btn"
                         :loading="starting"
-                        :disabled="!startName.trim()"
+                        :disabled="!canStart"
                         @click="startGame"
                     >
                         踏入仙途
                     </el-button>
-                </form>
+                </el-form>
                 <div class="start-foot">本地单机存档 · 仅一个存档位, 创建后不可重置</div>
             </div>
         </section>
@@ -67,7 +126,7 @@
                             <div class="portrait-seal">{{ character.name.slice(0, 1) }}</div>
                         </div>
                         <div class="portrait-name">{{ character.name }}</div>
-                        <div class="portrait-sub">{{ realmLabel }} · {{ character.className }} · {{ character.sectName }}</div>
+                        <div class="portrait-sub">{{ realmLabel }} · {{ character.raceName }} · {{ character.className }} · {{ character.sectName }}</div>
                     </div>
 
                     <div class="section-title">
@@ -99,6 +158,23 @@
                         <div class="attribute-row"><span>护体</span><span class="attribute-value">{{ character.defense }}</span></div>
                         <div class="attribute-row"><span>年龄</span><span class="attribute-value">{{ character.age }}</span></div>
                     </div>
+
+                    <div class="section-title">
+                        <span class="title-mark"></span>
+                        <span>灵根</span>
+                    </div>
+                    <div class="root-chips">
+                        <span v-for="root in characterRoots" :key="root.key">{{ root.label }} {{ root.value }}</span>
+                    </div>
+
+                    <div class="section-title">
+                        <span class="title-mark"></span>
+                        <span>天赋</span>
+                    </div>
+                    <div v-if="character.talents?.length" class="talent-chips">
+                        <span v-for="talent in character.talents" :key="talent.talent_id">{{ talent.talent_name }}</span>
+                    </div>
+                    <div v-else class="buff-empty">尚未获得天赋</div>
 
                     <div class="section-title">
                         <span class="title-mark"></span>
@@ -264,15 +340,24 @@ const BUFF_LABELS = {
     HEAL: '疗伤',
 };
 
-const activeTab = ref('cultivate');
+const initialTab = new URLSearchParams(window.location.search).get('tab');
+const activeTab = ref(['cultivate', 'alchemy', 'inventory'].includes(initialTab) ? initialTab : 'cultivate');
 const loading = ref(true);
 const starting = ref(false);
 const acting = ref('');
-const startName = ref('');
 const state = ref(null);
 const realms = ref([]);
 const bagCategory = ref('all');
 const usingPillId = ref(0);
+const creationOptions = reactive({ races: [], classes: [], talents: [], maxTalents: 2, rootPoints: 100 });
+const startForm = reactive({
+    name: '',
+    gender: 1,
+    raceId: 0,
+    classId: 0,
+    rootElements: ['metal'],
+    talentIds: [],
+});
 
 const hasSave = computed(() => Boolean(state.value?.hasSave));
 const character = computed(() => state.value?.character || {});
@@ -293,10 +378,31 @@ const nextStageLabel = computed(() =>
     const stage = Number(character.value.stage);
     return stage >= 3 ? '下一境界' : `${character.value.realm}${STAGE_LABELS[stage + 1]}`;
 });
-const ownedFurnaceIds = computed(() =>
-    (state.value?.inventory || [])
-        .filter((item) => item.item_code?.startsWith('FURNACE_ALC'))
-        .map((item) => Number(item.item_id))
+const rootOptions = [
+    { key: 'metal', label: '金' },
+    { key: 'wood', label: '木' },
+    { key: 'water', label: '水' },
+    { key: 'fire', label: '火' },
+    { key: 'earth', label: '土' },
+];
+const selectedRace = computed(() =>
+    creationOptions.races.find((race) => Number(race.race_id) === Number(startForm.raceId))
+);
+const characterRoots = computed(() =>
+    rootOptions.map((root) => ({
+        ...root,
+        value: Number(character.value.roots?.[root.key] || 0),
+    }))
+);
+const canStart = computed(() =>
+    Boolean(
+        startForm.name.trim() &&
+        startForm.raceId &&
+        startForm.classId &&
+        startForm.rootElements.length > 0 &&
+        startForm.talentIds.length >= 1 &&
+        startForm.talentIds.length <= creationOptions.maxTalents
+    )
 );
 const bagItems = computed(() =>
 {
@@ -316,6 +422,42 @@ const bagItems = computed(() =>
 function formatNumber(value)
 {
     return Number(value || 0).toLocaleString('zh-CN');
+}
+
+function raceBonusText(race)
+{
+    const parts = [];
+    if (Number(race.aptitude_bonus)) parts.push(`资质 +${race.aptitude_bonus}`);
+    if (Number(race.comprehension_bonus)) parts.push(`悟性 +${race.comprehension_bonus}`);
+    if (Number(race.max_hp_bonus)) parts.push(`气血 ${Number(race.max_hp_bonus) > 0 ? '+' : ''}${race.max_hp_bonus}`);
+    if (Number(race.attack_bonus)) parts.push(`攻伐 +${race.attack_bonus}`);
+    if (Number(race.defense_bonus)) parts.push(`护体 +${race.defense_bonus}`);
+    if (Number(race.cultivation_bonus)) parts.push(`修炼效率 +${race.cultivation_bonus}%`);
+    return parts.join(' · ') || '无额外属性加成';
+}
+
+function toggleRoot(root)
+{
+    const index = startForm.rootElements.indexOf(root);
+    if (index >= 0)
+    {
+        if (startForm.rootElements.length > 1) startForm.rootElements.splice(index, 1);
+        return;
+    }
+    startForm.rootElements.push(root);
+}
+
+function toggleTalent(talentId)
+{
+    const index = startForm.talentIds.indexOf(talentId);
+    if (index >= 0)
+    {
+        startForm.talentIds.splice(index, 1);
+    }
+    else if (startForm.talentIds.length < creationOptions.maxTalents)
+    {
+        startForm.talentIds.push(talentId);
+    }
 }
 
 /**
@@ -403,17 +545,32 @@ async function loadRealms()
     realms.value = data.data;
 }
 
+async function loadCreationOptions()
+{
+    const { data } = await api.get('/game/creation-options');
+    Object.assign(creationOptions, data.data);
+    startForm.raceId = creationOptions.races[0]?.race_id || 0;
+    startForm.classId = creationOptions.classes[0]?.class_id || 0;
+}
+
 /**
  * @brief 提交开局请求并进入修行界面
  */
 async function startGame()
 {
-    const name = startName.value.trim();
-    if (!name || starting.value) return;
+    const name = startForm.name.trim();
+    if (!canStart.value || starting.value) return;
     starting.value = true;
     try
     {
-        const { data } = await api.post('/game/start', { name });
+        const { data } = await api.post('/game/start', {
+            name,
+            gender: startForm.gender,
+            raceId: startForm.raceId,
+            classId: startForm.classId,
+            rootElements: startForm.rootElements,
+            talentIds: startForm.talentIds,
+        });
         applyState(data.data);
         notify('success', `${name}, 仙途始于今日`);
     }
@@ -510,7 +667,7 @@ onMounted(async () =>
 {
     try
     {
-        await Promise.all([loadRealms(), reload()]);
+        await Promise.all([loadRealms(), loadCreationOptions(), reload()]);
     }
     catch (error)
     {
@@ -555,7 +712,7 @@ onMounted(async () =>
     border: 1px solid var(--lhl-aside-border);
 }
 .start-scroll {
-    width: min(560px, 100% - 32px);
+    width: min(880px, 100% - 32px);
     padding: 40px 36px 30px;
     text-align: center;
     color: #eef4f1;
@@ -592,6 +749,106 @@ onMounted(async () =>
     line-height: 2;
     color: rgba(238, 244, 241, 0.7);
 }
+.creation-form {
+    text-align: left;
+}
+.creation-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px 16px;
+}
+.creation-form :deep(.el-form-item__label) {
+    color: rgba(238, 244, 241, 0.72);
+    letter-spacing: 2px;
+}
+.race-note {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: 4px 0 18px;
+    padding: 11px 13px;
+    border: 1px solid rgba(238, 244, 241, 0.16);
+    border-radius: 7px;
+    background: rgba(238, 244, 241, 0.06);
+}
+.race-note strong {
+    font-family: var(--lhl-font-display);
+    letter-spacing: 3px;
+}
+.race-note span,
+.race-note small {
+    color: rgba(238, 244, 241, 0.65);
+    font-size: 12px;
+    line-height: 1.6;
+}
+.choice-title {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin: 16px 0 9px;
+    color: rgba(238, 244, 241, 0.9);
+    font-family: var(--lhl-font-display);
+    letter-spacing: 3px;
+}
+.choice-title small {
+    color: rgba(238, 244, 241, 0.5);
+    font-family: var(--lhl-font-body);
+    font-size: 11px;
+    letter-spacing: 0;
+}
+.root-options {
+    display: flex;
+    gap: 8px;
+}
+.root-options button {
+    width: 58px;
+    height: 38px;
+    border: 1px solid rgba(238, 244, 241, 0.2);
+    border-radius: 6px;
+    background: rgba(238, 244, 241, 0.04);
+    color: rgba(238, 244, 241, 0.72);
+    cursor: pointer;
+    font-family: var(--lhl-font-display);
+    font-size: 17px;
+}
+.root-options button.active {
+    border-color: var(--lhl-jade);
+    background: rgba(44, 140, 122, 0.25);
+    color: #dff8ef;
+}
+.talent-options {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+.talent-option {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px 12px;
+    text-align: left;
+    border: 1px solid rgba(238, 244, 241, 0.16);
+    border-radius: 7px;
+    background: rgba(238, 244, 241, 0.04);
+    color: rgba(238, 244, 241, 0.88);
+    cursor: pointer;
+}
+.talent-option span {
+    font-family: var(--lhl-font-display);
+    letter-spacing: 2px;
+}
+.talent-option small {
+    color: rgba(238, 244, 241, 0.55);
+    line-height: 1.5;
+}
+.talent-option.active {
+    border-color: var(--lhl-gold);
+    background: rgba(201, 162, 39, 0.14);
+}
+.talent-option:disabled {
+    opacity: 0.42;
+    cursor: not-allowed;
+}
 .start-form {
     display: grid;
     grid-template-columns: 48px 1fr;
@@ -605,8 +862,8 @@ onMounted(async () =>
     color: rgba(238, 244, 241, 0.8);
 }
 .start-btn {
-    grid-column: 1 / -1;
-    margin-top: 6px;
+    width: 100%;
+    margin-top: 18px;
     letter-spacing: 6px;
 }
 .start-foot {
@@ -796,6 +1053,24 @@ onMounted(async () =>
 .attribute-value {
     font-family: var(--lhl-font-mono);
     color: var(--lhl-text);
+}
+.root-chips,
+.talent-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+.root-chips span,
+.talent-chips span {
+    padding: 3px 7px;
+    border-radius: 4px;
+    color: var(--lhl-jade-deep);
+    background: var(--lhl-jade-soft);
+    font-size: 11px;
+}
+.talent-chips span {
+    color: #8a6d18;
+    background: rgba(201, 162, 39, 0.12);
 }
 
 .buff-empty {
@@ -1097,6 +1372,19 @@ onMounted(async () =>
     }
     .lower-grid {
         grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+@media (max-width: 680px) {
+    .creation-grid,
+    .talent-options {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    .root-options {
+        justify-content: space-between;
+    }
+    .root-options button {
+        width: 18%;
     }
 }
 

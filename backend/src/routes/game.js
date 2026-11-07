@@ -3,6 +3,15 @@ import { pool } from '../db.js';
 
 const router = express.Router();
 const SAVE_ID = 1;
+const MAX_TALENTS = 2;
+const ROOT_COLUMNS = {
+    metal: 'metal_root',
+    wood: 'wood_root',
+    water: 'water_root',
+    fire: 'fire_root',
+    earth: 'earth_root',
+};
+const ROOT_ORDER = Object.keys(ROOT_COLUMNS);
 
 function badRequest(message)
 {
@@ -47,20 +56,155 @@ function breakthroughChance(aptitude, comprehension, bonus)
     return Math.min(95, 65 + Number(aptitude || 0) * 0.5 + Number(comprehension || 0) * 0.25 + Number(bonus || 0));
 }
 
-async function getState()
+/**
+ * @brief 将所选灵根均分为 100 点
+ *
+ * @param {Array<string>} elements 所选五行灵根
+ * @return {object} character_attribute 对应的灵根字段值
+ */
+function buildRootDistribution(elements)
+{
+    const roots = Object.fromEntries(Object.values(ROOT_COLUMNS).map((column) => [column, 0]));
+    const selected = ROOT_ORDER.filter((element) => elements.includes(element));
+    const base = Math.floor(100 / selected.length);
+    let remainder = 100 % selected.length;
+    for (const element of selected)
+    {
+        roots[ROOT_COLUMNS[element]] = base + (remainder > 0 ? 1 : 0);
+        remainder = Math.max(0, remainder - 1);
+    }
+    return roots;
+}
+
+/**
+ * @brief 汇总角色基础属性, 种族加成与天赋加成
+ *
+ * @param {object} db 连接池或事务连接
+ * @param {number} characterId 角色 ID
+ * @return {Promise<object|null>} 基础值, 加成与最终属性
+ */
+async function getEffectiveAttributes(db, characterId)
+{
+    const [[row]] = await db.query(
+        `SELECT ca.aptitude, ca.comprehension, ca.metal_root, ca.wood_root, ca.water_root,
+                ca.fire_root, ca.earth_root, ca.max_hp, ca.attack, ca.defense,
+                ra.aptitude_bonus AS race_aptitude_bonus,
+                ra.comprehension_bonus AS race_comprehension_bonus,
+                ra.max_hp_bonus AS race_max_hp_bonus,
+                ra.attack_bonus AS race_attack_bonus,
+                ra.defense_bonus AS race_defense_bonus,
+                ra.cultivation_bonus AS race_cultivation_bonus,
+                COALESCE(ts.aptitude_bonus, 0) AS talent_aptitude_bonus,
+                COALESCE(ts.comprehension_bonus, 0) AS talent_comprehension_bonus,
+                COALESCE(ts.max_hp_bonus, 0) AS talent_max_hp_bonus,
+                COALESCE(ts.attack_bonus, 0) AS talent_attack_bonus,
+                COALESCE(ts.defense_bonus, 0) AS talent_defense_bonus,
+                COALESCE(ts.cultivation_bonus, 0) AS talent_cultivation_bonus,
+                COALESCE(ts.alchemy_bonus, 0) AS talent_alchemy_bonus
+           FROM \`character\` c
+           JOIN character_attribute ca ON ca.character_id = c.character_id
+           LEFT JOIN race ra ON ra.race_id = c.race_id
+           LEFT JOIN
+                (
+                    SELECT ct.character_id,
+                           SUM(t.aptitude_bonus) AS aptitude_bonus,
+                           SUM(t.comprehension_bonus) AS comprehension_bonus,
+                           SUM(t.max_hp_bonus) AS max_hp_bonus,
+                           SUM(t.attack_bonus) AS attack_bonus,
+                           SUM(t.defense_bonus) AS defense_bonus,
+                           SUM(t.cultivation_bonus) AS cultivation_bonus,
+                           SUM(t.alchemy_bonus) AS alchemy_bonus
+                      FROM character_talent ct
+                      JOIN talent t ON t.talent_id = ct.talent_id
+                     GROUP BY ct.character_id
+                ) ts ON ts.character_id = c.character_id
+          WHERE c.character_id = ?`,
+        [characterId]
+    );
+    if (!row) return null;
+
+    const total = (base, raceBonus, talentBonus) =>
+        Number(base || 0) + Number(raceBonus || 0) + Number(talentBonus || 0);
+    return {
+        base: {
+            aptitude: Number(row.aptitude || 10),
+            comprehension: Number(row.comprehension || 10),
+            maxHp: Number(row.max_hp || 100),
+            attack: Number(row.attack || 10),
+            defense: Number(row.defense || 10),
+        },
+        roots: {
+            metal: Number(row.metal_root || 0),
+            wood: Number(row.wood_root || 0),
+            water: Number(row.water_root || 0),
+            fire: Number(row.fire_root || 0),
+            earth: Number(row.earth_root || 0),
+        },
+        raceBonuses: {
+            aptitude: Number(row.race_aptitude_bonus || 0),
+            comprehension: Number(row.race_comprehension_bonus || 0),
+            maxHp: Number(row.race_max_hp_bonus || 0),
+            attack: Number(row.race_attack_bonus || 0),
+            defense: Number(row.race_defense_bonus || 0),
+            cultivation: Number(row.race_cultivation_bonus || 0),
+        },
+        talentBonuses: {
+            aptitude: Number(row.talent_aptitude_bonus || 0),
+            comprehension: Number(row.talent_comprehension_bonus || 0),
+            maxHp: Number(row.talent_max_hp_bonus || 0),
+            attack: Number(row.talent_attack_bonus || 0),
+            defense: Number(row.talent_defense_bonus || 0),
+            cultivation: Number(row.talent_cultivation_bonus || 0),
+            alchemy: Number(row.talent_alchemy_bonus || 0),
+        },
+        effective: {
+            aptitude: total(row.aptitude, row.race_aptitude_bonus, row.talent_aptitude_bonus),
+            comprehension: total(row.comprehension, row.race_comprehension_bonus, row.talent_comprehension_bonus),
+            maxHp: total(row.max_hp, row.race_max_hp_bonus, row.talent_max_hp_bonus),
+            attack: total(row.attack, row.race_attack_bonus, row.talent_attack_bonus),
+            defense: total(row.defense, row.race_defense_bonus, row.talent_defense_bonus),
+            cultivationRateBonus:
+                Number(row.race_cultivation_bonus || 0) + Number(row.talent_cultivation_bonus || 0),
+            alchemyRateBonus: Number(row.talent_alchemy_bonus || 0),
+        },
+    };
+}
+
+/**
+ * @brief 读取角色天赋列表
+ *
+ * @param {object} db 连接池或事务连接
+ * @param {number} characterId 角色 ID
+ * @return {Promise<Array>} 天赋列表
+ */
+async function getCharacterTalents(db, characterId)
+{
+    const [rows] = await db.query(
+        `SELECT t.*
+           FROM character_talent ct
+           JOIN talent t ON t.talent_id = ct.talent_id
+          WHERE ct.character_id = ?
+          ORDER BY t.talent_id`,
+        [characterId]
+    );
+    return rows;
+}
+
+export async function getState()
 {
     const [[save]] = await pool.query(
         `SELECT gs.save_id, gs.character_id, gs.realm_stage, gs.cultivation,
                 gs.spirit_stones, gs.day_count,
-                c.character_name, c.age, c.gender, c.class_id,
+                c.character_name, c.age, c.gender, c.class_id, c.race_id,
+                c.character_description,
                 cl.class_name, r.realm_id, r.realm_name, r.realm_level, r.realm_world,
-                ca.aptitude, ca.comprehension, ca.max_hp, ca.attack, ca.defense,
+                ra.race_name, ra.race_description,
                 sm.member_name, s.sect_name
            FROM game_save gs
            JOIN \`character\` c ON c.character_id = gs.character_id
            JOIN realm r ON r.realm_id = c.realm_id
            LEFT JOIN class cl ON cl.class_id = c.class_id
-           LEFT JOIN character_attribute ca ON ca.character_id = c.character_id
+           LEFT JOIN race ra ON ra.race_id = c.race_id
            LEFT JOIN sect_member sm ON sm.character_id = c.character_id AND sm.member_status = 1
            LEFT JOIN sect s ON s.sect_id = sm.sect_id
           WHERE gs.save_id = ?`,
@@ -73,14 +217,18 @@ async function getState()
     }
 
     const [inventory] = await pool.query(
-        `SELECT ci.item_id, ci.quantity, i.item_name, i.item_code, i.level,
+        `SELECT ci.item_id, ci.quantity, i.item_name, i.item_code, i.level, i.description,
+                i.item_category_id, ic.item_category_name,
                 h.main_effect, h.secondary_effect, h.guide_effect,
                 p.pill_category, p.effect_type, p.base_effect,
-                p.breakthrough_bonus, p.toxicity, p.buff_code
+                p.breakthrough_bonus, p.toxicity, p.buff_code,
+                pr.recipe_id, pr.pill_id
            FROM character_inventory ci
            JOIN item i ON i.item_id = ci.item_id
+           JOIN item_category ic ON ic.item_category_id = i.item_category_id
            LEFT JOIN herb h ON h.item_id = ci.item_id
            LEFT JOIN pill p ON p.item_id = ci.item_id
+           LEFT JOIN pill_recipe pr ON pr.recipe_item_id = ci.item_id
           WHERE ci.character_id = ? AND ci.quantity > 0
           ORDER BY i.item_category_id, i.level, i.item_name`,
         [save.character_id]
@@ -103,15 +251,26 @@ async function getState()
         [SAVE_ID]
     );
 
+    const [talents, attributes] = await Promise.all([
+        getCharacterTalents(pool, save.character_id),
+        getEffectiveAttributes(pool, save.character_id),
+    ]);
     const threshold = cultivationRequired(Number(save.realm_level), Number(save.realm_stage));
     const cultivationBonus = maxBuffValue(buffs, 'CULTIVATION_UP');
     const breakthroughBonus = maxBuffValue(buffs, 'BREAKTHROUGH_BONUS');
+    const cultivationRateBonus = attributes.effective.cultivationRateBonus;
     return {
         hasSave: true,
         character: {
             characterId: Number(save.character_id),
             name: save.character_name,
+            gender: Number(save.gender || 1),
             age: Number(save.age || 16),
+            description: save.character_description,
+            raceId: Number(save.race_id),
+            raceName: save.race_name || '未知种族',
+            raceDescription: save.race_description,
+            classId: Number(save.class_id || 0),
             className: save.class_name || '散修',
             sectName: save.sect_name || '无门无派',
             realm: save.realm_name,
@@ -119,16 +278,28 @@ async function getState()
             realmLevel: Number(save.realm_level),
             realmWorld: Number(save.realm_world),
             stage: Number(save.realm_stage),
-            aptitude: Number(save.aptitude || 10),
-            comprehension: Number(save.comprehension || 10),
-            maxHp: Number(save.max_hp || 100),
-            attack: Number(save.attack || 10),
-            defense: Number(save.defense || 10),
+            aptitude: attributes.effective.aptitude,
+            comprehension: attributes.effective.comprehension,
+            maxHp: attributes.effective.maxHp,
+            attack: attributes.effective.attack,
+            defense: attributes.effective.defense,
+            baseAttributes: attributes.base,
+            roots: attributes.roots,
+            raceBonuses: attributes.raceBonuses,
+            talentBonuses: attributes.talentBonuses,
+            cultivationRateBonus,
+            alchemyRateBonus: attributes.effective.alchemyRateBonus,
+            talents,
         },
         cultivation: Number(save.cultivation),
         cultivationRequired: threshold,
-        cultivationPerDay: Math.round(baseCultivationPerDay(save.aptitude) * (1 + cultivationBonus / 100)),
-        breakthroughChance: Math.round(breakthroughChance(save.aptitude, save.comprehension, breakthroughBonus) * 10) / 10,
+        cultivationPerDay: Math.round(
+            baseCultivationPerDay(attributes.effective.aptitude) *
+                (1 + (cultivationBonus + cultivationRateBonus) / 100)
+        ),
+        breakthroughChance: Math.round(
+            breakthroughChance(attributes.effective.aptitude, attributes.effective.comprehension, breakthroughBonus) * 10
+        ) / 10,
         spiritStones: Number(save.spirit_stones),
         dayCount: Number(save.day_count),
         inventory,
@@ -196,15 +367,80 @@ router.get('/realms', async (req, res, next) =>
     }
 });
 
+/**
+ * @brief 获取新角色创建可选项
+ */
+router.get('/creation-options', async (req, res, next) =>
+{
+    try
+    {
+        const [races] = await pool.query(
+            `SELECT race_id, race_code, race_name, race_description,
+                    aptitude_bonus, comprehension_bonus, max_hp_bonus,
+                    attack_bonus, defense_bonus, cultivation_bonus
+               FROM race
+              ORDER BY race_id`
+        );
+        const [classes] = await pool.query(
+            `SELECT class_id, class_code, class_name, class_description
+               FROM class
+              ORDER BY class_id`
+        );
+        const [talents] = await pool.query(
+            `SELECT *
+               FROM talent
+              ORDER BY talent_id`
+        );
+        res.json({
+            ok: true,
+            data: {
+                races,
+                classes,
+                talents,
+                roots: ROOT_ORDER,
+                maxTalents: MAX_TALENTS,
+                rootPoints: 100,
+            },
+        });
+    }
+    catch (error)
+    {
+        next(error);
+    }
+});
+
 router.post('/start', async (req, res, next) =>
 {
     const conn = await pool.getConnection();
     try
     {
         const name = String(req.body?.name || '').trim();
+        const gender = Number(req.body?.gender || 1);
+        const raceId = Number(req.body?.raceId || 0);
+        const classId = Number(req.body?.classId || 0);
+        const rootElements = Array.isArray(req.body?.rootElements) ? req.body.rootElements : [];
+        const talentIds = Array.isArray(req.body?.talentIds)
+            ? [...new Set(req.body.talentIds.map((id) => Number(id)).filter((id) => id > 0))]
+            : [];
         if (name.length < 1 || name.length > 16)
         {
             throw badRequest('道号长度需要在 1 到 16 个字符之间');
+        }
+        if (![1, 2].includes(gender))
+        {
+            throw badRequest('请选择有效的性别');
+        }
+        if (!raceId || !classId)
+        {
+            throw badRequest('种族与职业不能为空');
+        }
+        if (rootElements.length === 0 || rootElements.some((element) => !ROOT_ORDER.includes(element)))
+        {
+            throw badRequest('请至少选择一种有效灵根');
+        }
+        if (talentIds.length < 1 || talentIds.length > MAX_TALENTS)
+        {
+            throw badRequest(`请选择 1 至 ${MAX_TALENTS} 个天赋`);
         }
 
         await conn.beginTransaction();
@@ -217,20 +453,54 @@ router.post('/start', async (req, res, next) =>
             throw badRequest('已有存档，请继续当前修行');
         }
 
+        const [[race]] = await conn.query(
+            `SELECT race_id, race_name FROM race WHERE race_id = ?`,
+            [raceId]
+        );
+        if (!race) throw badRequest('所选种族不存在');
+        const [[characterClass]] = await conn.query(
+            `SELECT class_id, class_name FROM class WHERE class_id = ?`,
+            [classId]
+        );
+        if (!characterClass) throw badRequest('所选职业不存在');
+        const [talentRows] = await conn.query(
+            `SELECT talent_id FROM talent WHERE talent_id IN (?)`,
+            [talentIds]
+        );
+        if (talentRows.length !== talentIds.length)
+        {
+            throw badRequest('所选天赋中包含无效项');
+        }
+
+        const roots = buildRootDistribution(rootElements);
         const [characterResult] = await conn.query(
             `INSERT INTO \`character\`
-                (character_name, gender, age, race_id, race_subsp_id, class_id, realm_id, character_description)
-             VALUES (?, 1, 16, 1, 1, 3, 1, '初入修仙之路的玩家修士')`,
-            [name]
+                (character_name, gender, age, race_id, class_id, realm_id, character_description)
+             VALUES (?, ?, 16, ?, ?, 1, ?)`,
+            [name, gender, raceId, classId, `${race.race_name}${characterClass.class_name}, 初入修仙之路的玩家修士`]
         );
         const characterId = Number(characterResult.insertId);
         await conn.query(
             `INSERT INTO character_attribute
                 (character_id, aptitude, comprehension, metal_root, wood_root, water_root,
                  fire_root, earth_root, max_hp, attack, defense)
-             VALUES (?, 16, 14, 20, 20, 20, 20, 20, 100, 10, 10)`,
-            [characterId]
+             VALUES (?, 10, 10, ?, ?, ?, ?, ?, 100, 10, 10)`,
+            [
+                characterId,
+                roots.metal_root,
+                roots.wood_root,
+                roots.water_root,
+                roots.fire_root,
+                roots.earth_root,
+            ]
         );
+        for (const talentId of talentIds)
+        {
+            await conn.query(
+                `INSERT INTO character_talent (character_id, talent_id) VALUES (?, ?)`,
+                [characterId, talentId]
+            );
+        }
         await conn.query(
             `INSERT INTO character_alchemy_skill (character_id) VALUES (?)`,
             [characterId]
@@ -245,6 +515,8 @@ router.post('/start', async (req, res, next) =>
             ['HERB_SHENGXI', 8],
             ['HERB_YULU', 8],
             ['FURNACE_ALC_L1', 1],
+            ['RECIPE_HUICHUN', 1],
+            ['RECIPE_JULING', 1],
         ])
         {
             const [result] = await conn.query(
@@ -258,7 +530,12 @@ router.post('/start', async (req, res, next) =>
             }
         }
 
-        await recordEvent(conn, 'start', '踏入仙途', `${name}在青岚山醒来，身边只有几味草药与一尊旧丹炉`);
+        await recordEvent(
+            conn,
+            'start',
+            '踏入仙途',
+            `${race.race_name}修士${name}在青岚山醒来，身边只有几味草药与一尊旧丹炉`
+        );
         await conn.commit();
         res.json({ ok: true, data: await getState() });
     }
@@ -280,15 +557,16 @@ router.post('/cultivate', async (req, res, next) =>
     {
         await conn.beginTransaction();
         const [[save]] = await conn.query(
-            `SELECT gs.*, r.realm_level, ca.aptitude
+            `SELECT gs.*, r.realm_level
                FROM game_save gs
                JOIN \`character\` c ON c.character_id = gs.character_id
                JOIN realm r ON r.realm_id = c.realm_id
-               JOIN character_attribute ca ON ca.character_id = c.character_id
               WHERE gs.save_id = ? FOR UPDATE`,
             [SAVE_ID]
         );
         if (!save) throw notFound('尚未创建修行存档');
+        const attributes = await getEffectiveAttributes(conn, save.character_id);
+        if (!attributes) throw notFound('角色属性不存在');
 
         const [buffs] = await conn.query(
             `SELECT MAX(buff_value) AS cultivation_bonus
@@ -298,7 +576,10 @@ router.post('/cultivate', async (req, res, next) =>
             [save.character_id]
         );
         const bonus = Number(buffs[0]?.cultivation_bonus || 0);
-        const gained = Math.round(baseCultivationPerDay(save.aptitude) * (1 + bonus / 100));
+        const gained = Math.round(
+            baseCultivationPerDay(attributes.effective.aptitude) *
+                (1 + (bonus + attributes.effective.cultivationRateBonus) / 100)
+        );
         await conn.query(
             `UPDATE game_save
                 SET cultivation = cultivation + ?, day_count = day_count + 1
@@ -383,16 +664,16 @@ router.post('/breakthrough', async (req, res, next) =>
     {
         await conn.beginTransaction();
         const [[save]] = await conn.query(
-            `SELECT gs.*, r.realm_id, r.realm_name, r.realm_level, r.realm_world,
-                    ca.aptitude, ca.comprehension
+            `SELECT gs.*, r.realm_id, r.realm_name, r.realm_level, r.realm_world
                FROM game_save gs
                JOIN \`character\` c ON c.character_id = gs.character_id
                JOIN realm r ON r.realm_id = c.realm_id
-               JOIN character_attribute ca ON ca.character_id = c.character_id
               WHERE gs.save_id = ? FOR UPDATE`,
             [SAVE_ID]
         );
         if (!save) throw notFound('尚未创建修行存档');
+        const attributes = await getEffectiveAttributes(conn, save.character_id);
+        if (!attributes) throw notFound('角色属性不存在');
 
         const required = cultivationRequired(Number(save.realm_level), Number(save.realm_stage));
         if (Number(save.cultivation) < required)
@@ -407,7 +688,11 @@ router.post('/breakthrough', async (req, res, next) =>
                 AND (expires_at IS NULL OR expires_at > NOW())`,
             [save.character_id]
         );
-        const chance = breakthroughChance(save.aptitude, save.comprehension, buffRows[0]?.breakthrough_bonus);
+        const chance = breakthroughChance(
+            attributes.effective.aptitude,
+            attributes.effective.comprehension,
+            buffRows[0]?.breakthrough_bonus
+        );
         const success = Math.random() * 100 < chance;
         let eventTitle;
         let eventDescription;

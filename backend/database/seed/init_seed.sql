@@ -1,6 +1,6 @@
 SET NAMES utf8mb4;
 
--- 初始化种子数据: 种族 / 亚种 / 职业 / 门派职务 / 门派 / 字典 / 用户
+-- 初始化种子数据: 种族 / 天赋 / 职业 / 门派职务 / 门派 / 字典 / 用户
 -- 依赖 backend/database/schema/init.sql 已执行(先建表, 再导数据)
 -- 使用方法: mysql -u root -p < init_seed.sql
 -- 说明: 均使用 INSERT IGNORE, 可重复执行, 不会覆盖已存在的数据
@@ -8,56 +8,55 @@ SET NAMES utf8mb4;
 USE `lhlord`;
 
 -- 种族
-INSERT IGNORE INTO `race` (`race_id`, `race_code`, `race_name`, `race_description`) VALUES
-(1,  'RACE_HUMAN',  '人族', '万物之灵, 灵根资质参差但悟性出众, 修炼体系最为完善, 各境界皆有天骄'),
-(2,  'RACE_YAOZU',  '妖族', '草木禽兽开智修炼而成, 肉身强横, 寿命悠长, 化形后方可全面修行'),
-(3,  'RACE_MOZU',   '魔族', '生于魔渊煞气, 好战嗜杀, 肉身与神魂同修, 修炼极快但易坠入魔障'),
-(4,  'RACE_LINGZU', '灵族', '天地灵物所化, 天生亲和五行灵气, 灵体纯净, 畏惧污秽煞气'),
-(5,  'RACE_GUIZU',  '鬼族', '神魂凝聚所成, 擅长神魂之术与隐匿潜行, 畏惧雷火阳刚之力'),
-(6,  'RACE_LONGZU', '龙族', '上古神兽后裔, 肉身冠绝万族, 天生呼风唤雨, 血脉神通强大'),
-(7,  'RACE_FENGZU', '凤族', '上古神鸟后裔, 火属性亲和, 拥有涅槃重生之能, 天生祥瑞'),
-(8,  'RACE_XIANZU', '仙族', '仙界原生种族, 天生仙体, 生而亲和仙气, 修炼起点极高');
+INSERT INTO `race`
+    (`race_id`, `race_code`, `race_name`, `race_description`,
+     `aptitude_bonus`, `comprehension_bonus`, `max_hp_bonus`, `attack_bonus`, `defense_bonus`, `cultivation_bonus`)
+VALUES
+(1, 'RACE_HUMAN',  '人族', '万物之灵, 灵根资质参差但悟性出众, 修炼体系最为完善', 0, 2, 0, 0, 0, 0),
+(2, 'RACE_YAOZU',  '妖族', '草木禽兽开智修炼而成, 肉身强横, 寿命悠长', 1, 0, 30, 1, 1, 0),
+(3, 'RACE_MOZU',   '魔族', '生于魔渊煞气, 好战嗜杀, 肉身与神魂同修', 1, 1, 10, 3, 0, 2),
+(4, 'RACE_LINGZU', '灵族', '天地灵物所化, 天生亲和五行灵气, 灵体纯净', 0, 3, 0, 0, 1, 3),
+(5, 'RACE_GUIZU',  '鬼族', '神魂凝聚所成, 擅长神魂之术与隐匿潜行', 0, 4, -10, 0, 0, 1),
+(6, 'RACE_LONGZU', '龙族', '上古神兽后裔, 肉身冠绝万族, 血脉神通强大', 2, 0, 50, 2, 3, 2),
+(7, 'RACE_FENGZU', '凤族', '上古神鸟后裔, 火属性亲和, 拥有涅槃重生之能', 1, 2, 20, 1, 1, 4),
+(8, 'RACE_XIANZU', '仙族', '仙界原生种族, 天生仙体, 生而亲和仙气', 3, 3, 20, 1, 2, 5)
+ON DUPLICATE KEY UPDATE
+    `race_code` = VALUES(`race_code`),
+    `race_name` = VALUES(`race_name`),
+    `race_description` = VALUES(`race_description`),
+    `aptitude_bonus` = VALUES(`aptitude_bonus`),
+    `comprehension_bonus` = VALUES(`comprehension_bonus`),
+    `max_hp_bonus` = VALUES(`max_hp_bonus`),
+    `attack_bonus` = VALUES(`attack_bonus`),
+    `defense_bonus` = VALUES(`defense_bonus`),
+    `cultivation_bonus` = VALUES(`cultivation_bonus`);
 
--- 种族的亚种分类
-INSERT IGNORE INTO `race_subspecies` (`race_subspecies_id`, `race_id`, `race_subspecies_code`, `race_subspecies_name`, `race_subspecies_description`) VALUES
--- 人族
-(1,  1, 'SUB_HUMAN_MORTAL',   '凡人', '无特殊血脉的普通人类, 灵根资质全靠天生'),
-(2,  1, 'SUB_HUMAN_LINGTI',   '灵体', '天生亲近灵气, 修炼资质上佳'),
-(3,  1, 'SUB_HUMAN_MANZU',    '蛮族', '体魄强横, 不善术法, 精于近身搏杀'),
-(4,  1, 'SUB_HUMAN_YINZU',    '隐族', '天生隐匿天赋, 精通潜行刺探'),
--- 妖族
-(5,  2, 'SUB_YAO_HU',         '狐妖', '聪慧狡黠, 擅长幻术魅惑'),
-(6,  2, 'SUB_YAO_LANG',       '狼妖', '群居猎杀, 速度与耐力兼备'),
-(7,  2, 'SUB_YAO_SHE',        '蛇妖', '身含剧毒, 擅长缠斗与毒功'),
-(8,  2, 'SUB_YAO_HU',         '虎妖', '百兽之王, 肉身与战力俱佳'),
-(9,  2, 'SUB_YAO_HE',         '鹤妖', '身法飘逸, 擅长风属性术法'),
--- 魔族
-(10, 3, 'SUB_MO_XIULUO',      '修罗', '魔中战族, 嗜战成性, 战力无双'),
-(11, 3, 'SUB_MO_YECHA',       '夜叉', '身形如鬼魅, 精通暗杀偷袭'),
-(12, 3, 'SUB_MO_YI',          '魔裔', '魔族后裔, 血脉驳杂, 潜力不一'),
--- 灵族
-(13, 4, 'SUB_LING_MU',        '木灵', '草木之灵, 生机旺盛, 擅长治愈'),
-(14, 4, 'SUB_LING_HUO',       '火灵', '火精所化, 性情暴烈, 火法威力极强'),
-(15, 4, 'SUB_LING_SHUI',      '水灵', '水精所化, 性情温和, 擅长水法防御'),
-(16, 4, 'SUB_LING_JIN',       '金灵', '金精所化, 锋锐无匹, 剑道天赋高'),
-(17, 4, 'SUB_LING_TU',        '土灵', '土精所化, 防御厚重, 沉稳如山'),
--- 鬼族
-(18, 5, 'SUB_GUI_YOUHUN',     '游魂', '普通魂魄所化, 修行缓慢'),
-(19, 5, 'SUB_GUI_LIGUI',      '厉鬼', '怨念深重, 凶戾嗜杀'),
-(20, 5, 'SUB_GUI_XIULUO',     '鬼修', '主动修行的鬼道修士, 智慧与实力兼备'),
--- 龙族
-(21, 6, 'SUB_LONG_QING',      '青龙', '东方木属, 生机旺盛, 掌控风雨'),
-(22, 6, 'SUB_LONG_CHI',       '赤龙', '南方火属, 可焚天煮海'),
-(23, 6, 'SUB_LONG_BAI',       '白龙', '西方金属, 锋锐刚烈'),
-(24, 6, 'SUB_LONG_HEI',       '黑龙', '北方水属, 兴风作浪'),
-(25, 6, 'SUB_LONG_JIN',       '金龙', '龙族皇者血脉, 五德俱全'),
--- 凤族
-(26, 7, 'SUB_FENG_HUO',       '火凤', '掌控涅槃真火, 焚尽万物'),
-(27, 7, 'SUB_FENG_BING',      '冰凤', '掌控冰寒之力, 冻结万物'),
-(28, 7, 'SUB_FENG_QINGLUAN',  '青鸾', '祥瑞神鸟, 风属性亲和'),
--- 仙族
-(29, 8, 'SUB_XIAN_YI',        '仙裔', '仙界原住仙民, 仙体天成'),
-(30, 8, 'SUB_XIAN_TIANXIAN',  '天仙血脉', '继承天仙血脉, 天赋卓绝');
+-- 天赋
+INSERT INTO `talent`
+    (`talent_id`, `talent_code`, `talent_name`, `talent_description`, `rarity`,
+     `aptitude_bonus`, `comprehension_bonus`, `max_hp_bonus`, `attack_bonus`, `defense_bonus`,
+     `cultivation_bonus`, `alchemy_bonus`)
+VALUES
+(1, 'TALENT_CLEAR_MIND',   '灵台清明', '灵台无尘, 悟性出众',          '凡品', 0, 3, 0, 0, 0, 0, 0),
+(2, 'TALENT_HEAVENLY_ROOT','天资卓绝', '天生修道之资, 修炼事半功倍',  '上品', 3, 1, 0, 0, 0, 4, 0),
+(3, 'TALENT_LONG_BREATH',  '气脉绵长', '经脉宽阔, 周天运转更加顺畅',  '中品', 1, 1, 10, 0, 0, 6, 0),
+(4, 'TALENT_IRON_BONE',    '铜皮铁骨', '肉身坚韧, 气血充盈',          '中品', 0, 0, 60, 2, 4, 0, 0),
+(5, 'TALENT_GOD_STRENGTH', '天生神力', '力大无穷, 攻伐凌厉',          '中品', 0, 0, 20, 6, 0, 0, 0),
+(6, 'TALENT_ALCHEMY_HEART','丹心通明', '天生亲近药性, 精于炉火',      '上品', 1, 2, 0, 0, 0, 0, 12),
+(7, 'TALENT_SPIRIT_SENSE', '神识敏锐', '神魂感知远超同辈',            '中品', 0, 4, 0, 0, 1, 1, 0),
+(8, 'TALENT_BALANCED_ROOT','五行调和', '五行灵根协调, 根基稳固',      '极品', 2, 2, 20, 2, 2, 3, 3)
+ON DUPLICATE KEY UPDATE
+    `talent_code` = VALUES(`talent_code`),
+    `talent_name` = VALUES(`talent_name`),
+    `talent_description` = VALUES(`talent_description`),
+    `rarity` = VALUES(`rarity`),
+    `aptitude_bonus` = VALUES(`aptitude_bonus`),
+    `comprehension_bonus` = VALUES(`comprehension_bonus`),
+    `max_hp_bonus` = VALUES(`max_hp_bonus`),
+    `attack_bonus` = VALUES(`attack_bonus`),
+    `defense_bonus` = VALUES(`defense_bonus`),
+    `cultivation_bonus` = VALUES(`cultivation_bonus`),
+    `alchemy_bonus` = VALUES(`alchemy_bonus`);
 
 -- 职业
 INSERT IGNORE INTO `class` (`class_id`, `class_code`, `class_name`, `class_description`) VALUES
@@ -137,19 +136,19 @@ INSERT IGNORE INTO `user` (`user_id`, `username`, `password_hash`, `display_name
 (1, 'admin', NULL, '管理员', 1);
 
 -- 角色(示例修士, 境界按年龄与职位设定)
-INSERT IGNORE INTO `character` (`character_id`, `character_name`, `gender`, `age`, `race_id`, `race_subsp_id`, `class_id`, `realm_id`, `character_description`) VALUES
-(1,  '林清玄', 1, 28,  1, 1,  1, 2,  '青云宗剑修弟子, 悟性出众, 剑心澄明'),
-(2,  '苏云裳', 2, 24,  1, 2,  4, 2,  '丹霞谷丹修弟子, 精通草木药理'),
-(3,  '铁如山', 1, 42,  1, 3,  2, 3,  '蛮族体修, 肉身强横, 玄铁门执事'),
-(4,  '白灵',   2, 320, 2, 5,  8, 7,  '万年狐妖, 神念通玄, 万妖盟之主'),
-(5,  '陆沉舟', 1, 35,  1, 4,  7, 4,  '隐族阵修, 天机阁掌门, 善推演天机'),
-(6,  '阿蛮',   2, 19,  2, 8,  2, 3,  '虎妖少女, 天生神力, 拜入万妖盟'),
-(7,  '墨渊',   1, 580, 3, 10, 1, 8,  '修罗剑修, 性情孤傲, 大世界散修, 曾入太虚剑派后离门'),
-(8,  '云中鹤', 1, 120, 2, 9,  3, 6,  '鹤妖气修, 身法如风, 太虚剑派弟子'),
-(9,  '玄清',   1, 2000, 8, 29, 3, 11, '仙裔气修, 紫霄宫长老, 道法高深'),
-(10, '火灵儿', 2, 88,  4, 14, 5, 3,  '火灵化形, 天生控火, 师从玄铁门炼器'),
-(11, '敖烈',   1, 800, 6, 21, 1, 7,  '青龙血脉, 剑道天赋卓绝, 太虚剑派弟子'),
-(12, '凤九歌', 2, 300, 7, 26, 4, 5,  '火凤血脉, 涅槃重生, 丹霞谷掌门');
+INSERT IGNORE INTO `character` (`character_id`, `character_name`, `gender`, `age`, `race_id`, `class_id`, `realm_id`, `character_description`) VALUES
+(1,  '林清玄', 1, 28,  1, 1, 2,  '青云宗剑修弟子, 悟性出众, 剑心澄明'),
+(2,  '苏云裳', 2, 24,  1, 4, 2,  '丹霞谷丹修弟子, 精通草木药理'),
+(3,  '铁如山', 1, 42,  1, 2, 3,  '体修, 肉身强横, 玄铁门执事'),
+(4,  '白灵',   2, 320, 2, 8, 7,  '妖族大修, 神念通玄, 万妖盟之主'),
+(5,  '陆沉舟', 1, 35,  1, 7, 4,  '阵修, 天机阁掌门, 善推演天机'),
+(6,  '阿蛮',   2, 19,  2, 2, 3,  '妖族少女, 天生神力, 拜入万妖盟'),
+(7,  '墨渊',   1, 580, 3, 1, 8,  '魔族剑修, 性情孤傲, 大世界散修, 曾入太虚剑派后离门'),
+(8,  '云中鹤', 1, 120, 2, 3, 6,  '妖族气修, 身法如风, 太虚剑派弟子'),
+(9,  '玄清',   1, 2000, 8, 3, 11, '仙族气修, 紫霄宫长老, 道法高深'),
+(10, '火灵儿', 2, 88,  4, 5, 3,  '灵族化形, 天生控火, 师从玄铁门炼器'),
+(11, '敖烈',   1, 800, 6, 1, 7,  '龙族血脉, 剑道天赋卓绝, 太虚剑派弟子'),
+(12, '凤九歌', 2, 300, 7, 4, 5,  '凤族血脉, 涅槃重生, 丹霞谷掌门');
 
 -- 门派成员(角色-门派关系, 含已离开历史记录)
 INSERT IGNORE INTO `sect_member` (`sect_member_id`, `sect_id`, `character_id`, `member_name`, `position_id`, `sect_contribution`, `join_time`, `leave_time`, `member_status`) VALUES
