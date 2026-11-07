@@ -67,10 +67,17 @@ async function getRecipe(recipeId)
  * @param {Array} selected 已选药材, 含主药/辅药药性与药引属性
  * @return {Promise<object|null>} 匹配到的丹方, 无匹配时返回 null
  */
-async function findRecipeForSelected(selected)
+async function findRecipeForSelected(selected, characterId)
 {
     const [rows] = await pool.query(
-        `SELECT recipe_id FROM pill_recipe WHERE status = 1 ORDER BY recipe_level`
+        `SELECT DISTINCT r.recipe_id
+           FROM pill_recipe r
+           JOIN character_inventory ci
+             ON ci.item_id = r.recipe_item_id AND ci.character_id = ? AND ci.quantity > 0
+          WHERE r.status = 1
+          ORDER BY r.recipe_level`
+        ,
+        [characterId]
     );
     for (const row of rows)
     {
@@ -128,6 +135,13 @@ async function getCharacterSkill(characterId)
         `SELECT * FROM character_alchemy_skill WHERE character_id = ?`,
         [characterId]
     );
+    const [[talentBonus]] = await pool.query(
+        `SELECT COALESCE(SUM(t.alchemy_bonus), 0) AS alchemy_bonus
+           FROM character_talent ct
+           JOIN talent t ON t.talent_id = ct.talent_id
+          WHERE ct.character_id = ?`,
+        [characterId]
+    );
     if (rows.length === 0)
     {
         return {
@@ -138,9 +152,13 @@ async function getCharacterSkill(characterId)
             tolerance_level: 0,
             success_count: 0,
             best_recipe_level: 0,
+            talent_alchemy_bonus: Number(talentBonus?.alchemy_bonus || 0),
         };
     }
-    return rows[0];
+    return {
+        ...rows[0],
+        talent_alchemy_bonus: Number(talentBonus?.alchemy_bonus || 0),
+    };
 }
 
 /**
@@ -153,13 +171,17 @@ async function getInventory(characterId)
 {
     const [rows] = await pool.query(
         `SELECT ci.inventory_id, ci.item_id, ci.quantity, i.item_name, i.item_code, i.level, i.description,
+                i.item_category_id, ic.item_category_name,
                 h.main_effect, h.secondary_effect, h.guide_effect,
-                p.effect_type, p.base_effect, p.breakthrough_bonus, p.toxicity, p.buff_code
+                p.effect_type, p.base_effect, p.breakthrough_bonus, p.toxicity, p.buff_code,
+                pr.recipe_id, pr.pill_id
            FROM character_inventory ci
            JOIN item i ON i.item_id = ci.item_id
+           LEFT JOIN item_category ic ON ic.item_category_id = i.item_category_id
            LEFT JOIN herb h ON h.item_id = ci.item_id
            LEFT JOIN pill p ON p.item_id = ci.item_id
-          WHERE ci.character_id = ?
+           LEFT JOIN pill_recipe pr ON pr.recipe_item_id = ci.item_id
+          WHERE ci.character_id = ? AND ci.quantity > 0
           ORDER BY i.level, i.item_id`,
         [characterId]
     );
@@ -170,6 +192,78 @@ async function getInventoryMap(characterId)
 {
     const rows = await getInventory(characterId);
     return new Map(rows.map((r) => [Number(r.item_id), Number(r.quantity)]));
+}
+
+/**
+ * @brief 校验角色背包中是否持有指定物品
+ *
+ * @param {number} characterId 角色 ID
+ * @param {number} itemId 物品 ID
+ * @param {object} [db] 连接池或事务连接
+ * @return {Promise<number>} 持有数量
+ */
+async function ownedQuantity(characterId, itemId, db = pool)
+{
+    const [[row]] = await db.query(
+        `SELECT quantity FROM character_inventory
+          WHERE character_id = ? AND item_id = ?`,
+        [characterId, itemId]
+    );
+    return Number(row?.quantity || 0);
+}
+
+async function assertRecipeOwned(characterId, recipe)
+{
+    if (!recipe.recipe_item_id)
+    {
+        throw badRequest(`丹方未绑定丹方物品: ${recipe.recipe_id}`);
+    }
+    if (await ownedQuantity(characterId, recipe.recipe_item_id) <= 0)
+    {
+        throw badRequest('角色背包中没有该丹方');
+    }
+}
+
+async function assertFurnaceOwned(characterId, itemId, db = pool)
+{
+    if (await ownedQuantity(characterId, itemId, db) <= 0)
+    {
+        throw badRequest('角色背包中没有该丹炉');
+    }
+}
+
+/**
+ * @brief 读取角色背包中持有的丹方及药位
+ *
+ * @param {number} characterId 角色 ID
+ * @return {Promise<Array>} 已持有丹方列表
+ */
+async function getOwnedRecipes(characterId)
+{
+    const [rows] = await pool.query(
+        `SELECT r.*, i.item_name, p.pill_category, p.effect_type, p.base_effect,
+                p.duration, p.toxicity, p.breakthrough_bonus, p.buff_code
+           FROM pill_recipe r
+           JOIN character_inventory ci
+             ON ci.item_id = r.recipe_item_id AND ci.character_id = ? AND ci.quantity > 0
+           JOIN item i ON i.item_id = r.pill_id
+           JOIN pill p ON p.item_id = r.pill_id
+          WHERE r.status = 1
+          ORDER BY r.recipe_level, r.pill_id`,
+        [characterId]
+    );
+    for (const recipe of rows)
+    {
+        const [slots] = await pool.query(
+            `SELECT slot_type, slot_index, effect_code, required_power
+               FROM pill_recipe_slot
+              WHERE recipe_id = ?
+              ORDER BY FIELD(slot_type, 'main', 'secondary', 'guide'), slot_index`,
+            [recipe.recipe_id]
+        );
+        recipe.slots = slots;
+    }
+    return rows;
 }
 
 function signOf(guideEffect)
@@ -385,6 +479,7 @@ function calculateOutcome({ recipe, furnace, skill, selected, batchCount, random
             heatBonus -
             20 * surplusRate -
             crossRisk +
+            Number(skill.talent_alchemy_bonus || 0) +
             randomValue,
         0,
         100
@@ -475,7 +570,8 @@ function buildFreeResult(selected, furnace, skill, batchCount)
     const alchemyMatch = clamp(Number(skill.alchemy_level || 1) - 1, -4, 5) * 6;
     const fireMatch = clamp(Number(skill.fire_control_level || 1) - 1, -3, 4) * 4;
     const stability = clamp(
-        20 + 20 * balance + alchemyMatch + fireMatch + Number(furnace.heat_stability || 0),
+        20 + 20 * balance + alchemyMatch + fireMatch + Number(furnace.heat_stability || 0) +
+            Number(skill.talent_alchemy_bonus || 0),
         0,
         100
     );
@@ -568,6 +664,24 @@ async function hydrateSelected(recipe, selected, characterId)
 {
     const inventory = await getInventory(characterId);
     const byId = new Map(inventory.map((item) => [Number(item.item_id), item]));
+    const requested = new Map();
+    for (const item of selected)
+    {
+        const itemId = Number(item.item_id);
+        const full = byId.get(itemId);
+        if (!full) throw badRequest(`物品不存在或不在背包中: ${item.item_id}`);
+        const quantity = int(item.quantity, 0);
+        if (quantity <= 0) throw badRequest('药材数量必须大于 0');
+        requested.set(itemId, (requested.get(itemId) || 0) + quantity);
+    }
+    for (const [itemId, quantity] of requested)
+    {
+        const stock = Number(byId.get(itemId)?.quantity || 0);
+        if (quantity > stock)
+        {
+            throw badRequest(`物品库存不足: ${byId.get(itemId)?.item_name || itemId}`);
+        }
+    }
     return selected.map((item) =>
     {
         const full = byId.get(Number(item.item_id));
@@ -628,9 +742,16 @@ async function getCharacterAttribute(characterId)
 async function getCharacterDetail(characterId)
 {
     const [[base]] = await pool.query(
-        `SELECT c.character_id, c.character_name, c.gender, c.age, c.race_id, c.race_subsp_id,
+        `SELECT c.character_id, c.character_name, c.gender, c.age, c.race_id,
                 c.class_id, c.realm_id, c.character_description,
-                r.realm_name, cl.class_name, ra.race_name
+                r.realm_name, cl.class_name, ra.race_name,
+                ra.aptitude_bonus, ra.comprehension_bonus, ra.max_hp_bonus,
+                ra.attack_bonus, ra.defense_bonus,
+                COALESCE((SELECT SUM(t.aptitude_bonus) FROM character_talent ct JOIN talent t ON t.talent_id = ct.talent_id WHERE ct.character_id = c.character_id), 0) AS talent_aptitude_bonus,
+                COALESCE((SELECT SUM(t.comprehension_bonus) FROM character_talent ct JOIN talent t ON t.talent_id = ct.talent_id WHERE ct.character_id = c.character_id), 0) AS talent_comprehension_bonus,
+                COALESCE((SELECT SUM(t.max_hp_bonus) FROM character_talent ct JOIN talent t ON t.talent_id = ct.talent_id WHERE ct.character_id = c.character_id), 0) AS talent_max_hp_bonus,
+                COALESCE((SELECT SUM(t.attack_bonus) FROM character_talent ct JOIN talent t ON t.talent_id = ct.talent_id WHERE ct.character_id = c.character_id), 0) AS talent_attack_bonus,
+                COALESCE((SELECT SUM(t.defense_bonus) FROM character_talent ct JOIN talent t ON t.talent_id = ct.talent_id WHERE ct.character_id = c.character_id), 0) AS talent_defense_bonus
            FROM \`character\` c
            LEFT JOIN realm r ON r.realm_id = c.realm_id
            LEFT JOIN class cl ON cl.class_id = c.class_id
@@ -645,6 +766,11 @@ async function getCharacterDetail(characterId)
         `SELECT toxin_value FROM character_drug_toxin WHERE character_id = ?`,
         [characterId]
     );
+    attribute.aptitude += Number(base.aptitude_bonus || 0) + Number(base.talent_aptitude_bonus || 0);
+    attribute.comprehension += Number(base.comprehension_bonus || 0) + Number(base.talent_comprehension_bonus || 0);
+    attribute.max_hp += Number(base.max_hp_bonus || 0) + Number(base.talent_max_hp_bonus || 0);
+    attribute.attack += Number(base.attack_bonus || 0) + Number(base.talent_attack_bonus || 0);
+    attribute.defense += Number(base.defense_bonus || 0) + Number(base.talent_defense_bonus || 0);
     return {
         ...base,
         alchemy_skill: skill,
@@ -660,29 +786,28 @@ router.get('/overview', async (req, res, next) =>
 {
     try
     {
+        const characterId = int(req.query.characterId, 0);
+        if (!characterId) throw badRequest('characterId 不能为空');
         const [characters] = await pool.query(
-            `SELECT c.character_id, c.character_name, r.realm_name, cl.class_name
+            `SELECT c.character_id, c.character_name, r.realm_name, cl.class_name, ra.race_name
                FROM \`character\` c
                LEFT JOIN realm r ON r.realm_id = c.realm_id
                LEFT JOIN class cl ON cl.class_id = c.class_id
-              ORDER BY c.character_id`
+               LEFT JOIN race ra ON ra.race_id = c.race_id
+              WHERE c.character_id = ?`,
+            [characterId]
         );
-        const [recipes] = await pool.query(
-            `SELECT r.recipe_id, r.pill_id, r.recipe_level, r.min_furnace_level, r.base_days,
-                    i.item_name, i.level, p.pill_category, p.effect_type, p.base_effect,
-                    p.duration, p.toxicity, p.breakthrough_bonus, p.buff_code
-               FROM pill_recipe r
-               JOIN item i ON i.item_id = r.pill_id
-               JOIN pill p ON p.item_id = r.pill_id
-              WHERE r.status = 1
-              ORDER BY r.recipe_level, r.pill_id`
-        );
+        const recipes = await getOwnedRecipes(characterId);
         const [furnaces] = await pool.query(
             `SELECT i.item_id, i.item_name, i.level, f.furnace_level, f.capacity,
                     f.main_slots, f.secondary_slots, f.guide_slots, f.durability, f.heat_stability
                FROM item i
                JOIN alchemy_furnace f ON f.item_id = i.item_id
+               JOIN character_inventory ci ON ci.item_id = i.item_id
+              WHERE ci.character_id = ? AND ci.quantity > 0
               ORDER BY f.furnace_level`
+            ,
+            [characterId]
         );
         res.json({ ok: true, data: { characters, recipes, furnaces } });
     }
@@ -844,26 +969,9 @@ router.get('/recipes', async (req, res, next) =>
 {
     try
     {
-        const [rows] = await pool.query(
-            `SELECT r.*, i.item_name, p.pill_category, p.effect_type, p.base_effect,
-                    p.duration, p.toxicity, p.breakthrough_bonus, p.buff_code
-               FROM pill_recipe r
-               JOIN item i ON i.item_id = r.pill_id
-               JOIN pill p ON p.item_id = r.pill_id
-              WHERE r.status = 1
-              ORDER BY r.recipe_level`
-        );
-        for (const recipe of rows)
-        {
-            const [slots] = await pool.query(
-                `SELECT slot_type, slot_index, effect_code, required_power
-                   FROM pill_recipe_slot
-                  WHERE recipe_id = ?
-                  ORDER BY FIELD(slot_type, 'main', 'secondary', 'guide'), slot_index`,
-                [recipe.recipe_id]
-            );
-            recipe.slots = slots;
-        }
+        const characterId = int(req.query.characterId, 0);
+        if (!characterId) throw badRequest('characterId 不能为空');
+        const rows = await getOwnedRecipes(characterId);
         res.json({ ok: true, data: rows });
     }
     catch (err)
@@ -929,7 +1037,6 @@ router.get('/plan', async (req, res, next) =>
     try
     {
         const characterId = int(req.query.characterId, 0);
-        const inventoryCharacterId = int(req.query.inventoryCharacterId, characterId);
         const recipeId = int(req.query.recipeId, 0);
         const furnaceItemId = int(req.query.furnaceItemId, 0);
         const batchCount = clamp(int(req.query.batchCount, 1), 1, 99);
@@ -938,11 +1045,13 @@ router.get('/plan', async (req, res, next) =>
             throw badRequest('characterId, recipeId, furnaceItemId 必填');
         }
         const recipe = await getRecipe(recipeId);
+        await assertRecipeOwned(characterId, recipe);
         const furnace = await getFurnace(furnaceItemId);
+        await assertFurnaceOwned(characterId, furnaceItemId);
         const skill = await getCharacterSkill(characterId);
-        const inventory = await getInventory(inventoryCharacterId);
+        const inventory = await getInventory(characterId);
         const planned = await autoPlan({ recipe, inventory, batchCount });
-        const full = await fetchFullSelected(planned.selected, inventoryCharacterId);
+        const full = await fetchFullSelected(planned.selected, characterId);
         const result = calculateOutcome({ recipe, furnace, skill, selected: full, batchCount, randomValue: 0 });
         if (result.durabilityCost === Infinity) throw badRequest('丹药等级超过丹炉等级 3 级, 无法炼制');
         res.json({ ok: true, data: { ...result, durabilityAllowed: durabilityAllowed(furnace, result.durabilityCost), furnace } });
@@ -961,7 +1070,6 @@ router.post('/plan', async (req, res, next) =>
     try
     {
         const characterId = int(req.body?.characterId, 0);
-        const inventoryCharacterId = int(req.body?.inventoryCharacterId, characterId);
         const recipeId = int(req.body?.recipeId, 0);
         const furnaceItemId = int(req.body?.furnaceItemId, 0);
         const batchCount = clamp(int(req.body?.batchCount, 1), 1, 99);
@@ -970,11 +1078,13 @@ router.post('/plan', async (req, res, next) =>
             throw badRequest('characterId, furnaceItemId 必填');
         }
         const recipe = recipeId ? await getRecipe(recipeId) : null;
+        if (recipe) await assertRecipeOwned(characterId, recipe);
         const furnace = await getFurnace(furnaceItemId);
+        await assertFurnaceOwned(characterId, furnaceItemId);
         const skill = await getCharacterSkill(characterId);
-        const selected = await hydrateSelected(recipe, req.body?.ingredients || [], inventoryCharacterId);
+        const selected = await hydrateSelected(recipe, req.body?.ingredients || [], characterId);
         if (selected.length === 0) throw badRequest('自由炼丹请先选择药材');
-        const resolvedRecipe = recipe || (await findRecipeForSelected(selected));
+        const resolvedRecipe = recipe || (await findRecipeForSelected(selected, characterId));
         const result = resolvedRecipe
             ? calculateOutcome({ recipe: resolvedRecipe, furnace, skill, selected, batchCount, randomValue: 0 })
             : buildFreeResult(selected, furnace, skill, batchCount);
@@ -996,7 +1106,6 @@ router.post('/craft', async (req, res, next) =>
     try
     {
         const characterId = int(req.body?.characterId, 0);
-        const inventoryCharacterId = int(req.body?.inventoryCharacterId, characterId);
         const recipeId = int(req.body?.recipeId, 0);
         const furnaceItemId = int(req.body?.furnaceItemId, 0);
         const batchCount = clamp(int(req.body?.batchCount, 1), 1, 99);
@@ -1006,23 +1115,25 @@ router.post('/craft', async (req, res, next) =>
         }
 
         const recipe = recipeId ? await getRecipe(recipeId) : null;
+        if (recipe) await assertRecipeOwned(characterId, recipe);
         const furnace = await getFurnace(furnaceItemId);
+        await assertFurnaceOwned(characterId, furnaceItemId);
         const skill = await getCharacterSkill(characterId);
         let selected = Array.isArray(req.body?.ingredients) ? req.body.ingredients : null;
 
         if (!selected || selected.length === 0)
         {
             if (!recipe) throw badRequest('未选择丹方时, 必须自行选择药材');
-            const inventory = await getInventory(inventoryCharacterId);
+            const inventory = await getInventory(characterId);
             const planned = await autoPlan({ recipe, inventory, batchCount });
-            selected = await fetchFullSelected(planned.selected, inventoryCharacterId);
+            selected = await fetchFullSelected(planned.selected, characterId);
         }
         else
         {
-            selected = await hydrateSelected(recipe, selected, inventoryCharacterId);
+            selected = await hydrateSelected(recipe, selected, characterId);
         }
 
-        const resolvedRecipe = recipe || (await findRecipeForSelected(selected));
+        const resolvedRecipe = recipe || (await findRecipeForSelected(selected, characterId));
         const result = resolvedRecipe
             ? calculateOutcome({
                     recipe: resolvedRecipe,
@@ -1047,7 +1158,7 @@ router.post('/craft', async (req, res, next) =>
                 `UPDATE character_inventory
                     SET quantity = GREATEST(0, quantity - ?)
                   WHERE character_id = ? AND item_id = ?`,
-                [Number(item.quantity), inventoryCharacterId, Number(item.item_id)]
+                [Number(item.quantity), characterId, Number(item.item_id)]
             );
         }
 
@@ -1094,7 +1205,7 @@ router.post('/craft', async (req, res, next) =>
                 `INSERT INTO character_inventory (character_id, item_id, quantity)
                  VALUES (?, ?, ?)
                  ON DUPLICATE KEY UPDATE quantity = quantity + VALUES(quantity)`,
-                [inventoryCharacterId, resolvedRecipe.pill_id, result.quantity]
+                [characterId, resolvedRecipe.pill_id, result.quantity]
             );
             await conn.query(
                 `UPDATE character_alchemy_skill

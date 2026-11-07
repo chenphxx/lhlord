@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS `pill` (
 CREATE TABLE IF NOT EXISTS `pill_recipe` (
     `recipe_id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '丹方id',
     `pill_id` BIGINT DEFAULT NULL COMMENT '丹药id(逻辑外键: item.item_id)',
+    `recipe_item_id` BIGINT DEFAULT NULL COMMENT '丹方物品id(逻辑外键: item.item_id)',
     `recipe_level` TINYINT DEFAULT NULL COMMENT '丹方等级',
     `min_furnace_level` TINYINT DEFAULT NULL COMMENT '最低丹炉等级',
     `base_days` INT DEFAULT NULL COMMENT '基础炼制时间',
@@ -26,7 +27,8 @@ CREATE TABLE IF NOT EXISTS `pill_recipe` (
     `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`recipe_id`),
-    UNIQUE KEY `uk_pill_recipe_pill` (`pill_id`)
+    UNIQUE KEY `uk_pill_recipe_pill` (`pill_id`),
+    UNIQUE KEY `uk_pill_recipe_item` (`recipe_item_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='丹方主表, 定义丹药等级, 最低丹炉等级与基础炼制时间';
 
 CREATE TABLE IF NOT EXISTS `pill_recipe_slot` (

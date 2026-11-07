@@ -19,7 +19,8 @@ INSERT IGNORE INTO `item_category` (`item_category_id`, `item_category_code`, `i
 (8,  'CAT_WEAPON',          '武器',      '炼器产物, 攻伐之用, 具体属性见 weapon 扩展表'),
 (9,  'CAT_ARMOR',           '防具',      '炼器产物, 防御护身之用, 具体属性见 armor 扩展表'),
 (10, 'CAT_TREASURE',        '法宝',      '炼器产物, 具有特殊神通'),
-(11, 'CAT_ACCESSORY',       '配饰',      '炼器产物, 常附带增益效果');
+(11, 'CAT_ACCESSORY',       '配饰',      '炼器产物, 常附带增益效果'),
+(12, 'CAT_RECIPE',          '丹方',      '记录丹药炼制药性要求的可收藏物品');
 
 -- 物品(基础表)
 INSERT IGNORE INTO `item` (`item_id`, `item_code`, `item_category_id`, `item_name`, `quality`, `level`, `description`) VALUES
