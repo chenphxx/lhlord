@@ -100,7 +100,7 @@
         <template v-else>
             <nav class="game-nav">
                 <div class="game-nav-tabs">
-                    <button
+                        <button
                         v-for="tab in playerTabs"
                         :key="tab.name"
                         type="button"
@@ -310,24 +310,35 @@
             </div>
 
             <AlchemyView
-                v-else
+                v-else-if="activeTab === 'alchemy'"
                 :player-character-id="character.characterId"
-                :own-furnace-ids="ownedFurnaceIds"
+                :refresh-key="refreshKey"
                 @crafted="onCrafted"
+            />
+            <InventoryView
+                v-else
+                :character-id="character.characterId"
+                :refresh-key="refreshKey"
+                @updated="reload"
             />
         </template>
     </div>
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { ElMessage } from 'element-plus';
 import api from '../api/index.js';
 import AlchemyView from './AlchemyView.vue';
+import InventoryView from './InventoryView.vue';
 
+const props = defineProps({
+    refreshKey: { type: Number, default: 0 },
+});
 const playerTabs = [
     { name: 'cultivate', label: '修行' },
     { name: 'alchemy', label: '炼丹房' },
+    { name: 'inventory', label: '背包' },
 ];
 const STAGE_LABELS = ['', '初期', '中期', '后期'];
 const WORLD_LABELS = { 1: '小世界', 2: '大世界', 3: '仙界', 4: '上层位面' };
@@ -679,6 +690,11 @@ onMounted(async () =>
         loading.value = false;
     }
 });
+
+watch(
+    () => props.refreshKey,
+    () => reload()
+);
 </script>
 
 <style scoped>

@@ -4,8 +4,10 @@
 
 ## 功能
 
-- **修行**, 探索可获取草药与灵石; 修行可获得修为; 修为满后可尝试突破 
-- **炼丹房**, 可根据单方或者自行搭配药材探索新的单方
+- **修行**, 开局选择种族, 职业, 五行灵根与天赋; 探索可获取草药与灵石; 修为满后可尝试突破
+- **炼丹房**, 草药, 丹炉与丹方均从角色背包读取, 支持丹方炼制与自由配药
+- **背包**, 查看角色持有的草药, 丹药, 丹炉, 丹方与材料
+- **管理后台**, 管理当前角色的全部属性, 天赋, 丹道能力与背包物品
 
 ## 快速开始
 
@@ -18,6 +20,13 @@
 - 执行`seed/`下的`alchemy_seed.sql`与`item_seed.sql` 
 
 导入前请以 `utf8mb4` 连接数据库, 避免中文数据及表字段注释乱码 
+
+已有数据库升级时执行: 
+
+```bash
+mysql --default-character-set=utf8mb4 -u root -p lhlord < backend/database/migrations/20261107_character_customization.sql
+mysql --default-character-set=utf8mb4 -u root -p lhlord < backend/database/migrations/20261107_recipe_inventory.sql
+```
 
 例如: 
 

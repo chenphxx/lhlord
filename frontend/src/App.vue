@@ -1,14 +1,6 @@
 <template>
     <el-container class="layout">
-        <el-aside v-if="activeModule === 'tables'" width="252px" class="aside">
-            <div class="brand">
-                <div class="seal" aria-hidden="true">灵</div>
-                <div class="brand-text">
-                    <div class="brand-title">灵寰录</div>
-                    <div class="brand-sub">管理后台 · 数据卷宗</div>
-                </div>
-            </div>
-
+        <el-aside v-if="activeModule === 'admin' && activeAdminView === 'tables'" width="252px" class="aside">
             <div class="table-actions">
                 <el-button size="small" type="primary" plain :loading="loadingTables" @click="loadTables">
                     <el-icon><Refresh /></el-icon>
@@ -17,10 +9,6 @@
                 <el-button size="small" type="warning" plain @click="openCreateTable">
                     <el-icon><Plus /></el-icon>
                     <span>新增表</span>
-                </el-button>
-                <el-button size="small" type="primary" plain @click="openAlchemy">
-                    <el-icon><MagicStick /></el-icon>
-                    <span>炼丹系统</span>
                 </el-button>
                 <el-button size="small" plain class="debug-btn" @click="openDebug">
                     <el-icon><Monitor /></el-icon>
@@ -58,26 +46,35 @@
 
         <el-container class="body">
             <el-header class="topbar" height="60px">
-                <div v-if="activeModule === 'tables'" class="topbar-title">
-                    <div class="eyebrow">灵寰录 · 管理后台</div>
-                    <div class="title">数据卷宗</div>
+                <div class="topbar-brand" @click="openPlayer">
+                    <div class="topbar-seal" aria-hidden="true">灵</div>
+                    <div>
+                        <div class="eyebrow">修仙模拟器</div>
+                        <div class="title">灵寰录</div>
+                    </div>
                 </div>
                 <div class="topbar-right">
-                    <span v-if="activeModule === 'tables'" class="db-chip">{{ tables.length }} 卷 · lhlord 库</span>
-                    <el-tabs v-model="activeModule" class="module-tabs" @tab-change="onModuleTabChange">
-                        <el-tab-pane label="修行" name="player" />
-                        <el-tab-pane label="炼丹系统" name="alchemy" />
-                        <el-tab-pane label="管理后台" name="tables" />
-                    </el-tabs>
+                    <span v-if="activeModule === 'admin' && activeAdminView === 'tables'" class="db-chip">{{ tables.length }} 卷 · lhlord 库</span>
+                    <nav class="top-nav" aria-label="主导航">
+                        <button type="button" :class="{ active: activeModule === 'player' }" @click="openPlayer">修行</button>
+                        <button type="button" :class="{ active: activeModule === 'admin' }" @click="openAdmin">管理后台</button>
+                    </nav>
+                    <div v-if="activeModule === 'admin'" class="admin-switch">
+                        <button type="button" :class="{ active: activeAdminView === 'character' }" @click="openAdminCharacter">角色管理</button>
+                        <button type="button" :class="{ active: activeAdminView === 'tables' }" @click="openTableAdmin">数据卷宗</button>
+                    </div>
                     <el-tooltip :content="isDark ? '切换浅色模式' : '切换深色模式'" placement="left">
                         <el-button circle :icon="isDark ? Sunny : Moon" class="theme-btn" @click="toggleTheme" />
                     </el-tooltip>
                 </div>
             </el-header>
 
-            <el-main class="main" :class="{ 'alchemy-main': activeModule === 'alchemy' }">
-                <GameView v-if="activeModule === 'player'" />
-                <AlchemyView v-else-if="activeModule === 'alchemy'" @open-admin="openTableAdmin" />
+            <el-main class="main">
+                <GameView v-if="activeModule === 'player'" :refresh-key="playerRefreshKey" />
+                <AdminCharacterView
+                    v-else-if="activeAdminView === 'character'"
+                    @player-updated="onPlayerUpdated"
+                />
                 <TableData v-else-if="activeTable" :key="activeTable" :table-name="activeTable" />
                 <div v-else class="empty-wrap">
                     <el-empty description="从左侧卷宗选择一张数据表" />
@@ -174,18 +171,21 @@
 
 <script setup>
 import { onMounted, reactive, ref } from 'vue';
-import { MagicStick, Monitor, Moon, Plus, Refresh, Sunny } from '@element-plus/icons-vue';
+import { Monitor, Moon, Plus, Refresh, Sunny } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
 import api from './api/index.js';
 import TableData from './views/TableData.vue';
-import AlchemyView from './views/AlchemyView.vue';
 import GameView from './views/GameView.vue';
+import AdminCharacterView from './views/AdminCharacterView.vue';
 import { COLUMN_TYPES } from './utils/types.js';
 
 const tables = ref([]);
 const loadingTables = ref(false);
 const activeTable = ref('');
-const activeModule = ref('player');
+const initialQuery = new URLSearchParams(window.location.search);
+const activeModule = ref(initialQuery.get('module') === 'admin' ? 'admin' : 'player');
+const activeAdminView = ref(initialQuery.get('view') === 'tables' ? 'tables' : 'character');
+const playerRefreshKey = ref(0);
 
 // 主题切换
 const isDark = ref(localStorage.getItem('lhlord-theme') === 'dark');
@@ -218,7 +218,7 @@ async function loadTables()
     {
         const { data } = await api.get('/tables');
         tables.value = data.data;
-        if (activeModule.value === 'tables' && !activeTable.value && tables.value.length > 0)
+        if (activeModule.value === 'admin' && activeAdminView.value === 'tables' && !activeTable.value && tables.value.length > 0)
         {
             activeTable.value = tables.value[0].TABLE_NAME;
         }
@@ -235,39 +235,43 @@ async function loadTables()
 
 function openTable(tableName)
 {
-    activeModule.value = 'tables';
+    activeModule.value = 'admin';
+    activeAdminView.value = 'tables';
     activeTable.value = tableName;
 }
 
-function openAlchemy()
+function openPlayer()
 {
-    activeModule.value = 'alchemy';
+    activeModule.value = 'player';
+    activeTable.value = '';
+}
+
+function openAdmin()
+{
+    activeModule.value = 'admin';
+    activeAdminView.value = 'character';
+    activeTable.value = '';
+}
+
+function openAdminCharacter()
+{
+    activeAdminView.value = 'character';
     activeTable.value = '';
 }
 
 function openTableAdmin()
 {
-    activeModule.value = 'tables';
+    activeModule.value = 'admin';
+    activeAdminView.value = 'tables';
     if (!activeTable.value && tables.value.length > 0)
     {
         activeTable.value = tables.value[0].TABLE_NAME;
     }
 }
 
-function onModuleTabChange(name)
+function onPlayerUpdated()
 {
-    if (name === 'player')
-    {
-        activeTable.value = '';
-    }
-    else if (name === 'alchemy')
-    {
-        openAlchemy();
-    }
-    else
-    {
-        openTableAdmin();
-    }
+    playerRefreshKey.value += 1;
 }
 
 // 新建表
@@ -678,6 +682,24 @@ html.dark .table-actions :deep(.debug-btn) {
     border-bottom: 1px solid var(--lhl-line);
     padding: 0 20px;
 }
+.topbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+}
+.topbar-seal {
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+    display: grid;
+    place-items: center;
+    color: #f8f1de;
+    background: var(--lhl-cinnabar);
+    box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.28);
+    font-family: var(--lhl-font-display);
+    font-size: 20px;
+}
 .eyebrow {
     font-family: var(--lhl-font-display);
     font-size: 12px;
@@ -700,16 +722,51 @@ html.dark .table-actions :deep(.debug-btn) {
     align-items: center;
     gap: 12px;
 }
-.module-tabs {
-    --el-tabs-header-height: 34px;
+.top-nav {
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
-.module-tabs :deep(.el-tabs__item) {
-    font-family: var(--lhl-font-display);
-    letter-spacing: 2px;
+.top-nav button,
+.admin-switch button {
+    position: relative;
+    border: 0;
+    padding: 9px 12px;
+    background: transparent;
     color: var(--lhl-text-2);
+    cursor: pointer;
+    font-family: var(--lhl-font-display);
+    font-size: 14px;
+    letter-spacing: 3px;
 }
-.module-tabs :deep(.el-tabs__item.is-active) {
+.top-nav button::after,
+.admin-switch button::after {
+    content: '';
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    bottom: 2px;
+    height: 2px;
+    background: transparent;
+}
+.top-nav button.active,
+.admin-switch button.active {
     color: var(--lhl-jade-deep);
+}
+.top-nav button.active::after,
+.admin-switch button.active::after {
+    background: var(--lhl-jade);
+}
+.admin-switch {
+    display: flex;
+    align-items: center;
+    padding-left: 8px;
+    border-left: 1px solid var(--lhl-line);
+}
+.admin-switch button {
+    padding: 6px 9px;
+    font-size: 12px;
+    letter-spacing: 1px;
 }
 .db-chip {
     font-family: var(--lhl-font-mono);
@@ -729,9 +786,6 @@ html.dark .table-actions :deep(.debug-btn) {
 .main {
     padding: 16px 20px 20px;
     overflow: auto;
-}
-.main.alchemy-main {
-    overflow: hidden;
 }
 .empty-wrap {
     background: var(--lhl-panel);

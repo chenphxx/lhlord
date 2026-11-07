@@ -4,7 +4,7 @@ title lhlord launcher
 cd /d "%~dp0"
 
 echo ============================================
-echo   lhlord 管理后台启动器
+echo   lhlord 修仙模拟器启动器
 echo ============================================
 echo.
 
@@ -62,7 +62,7 @@ echo.
 
 start "" http://localhost:5173
 echo 访问地址:
-echo   管理后台:       http://localhost:5173
+echo   游戏与后台:     http://localhost:5173
 echo   后端健康检查:   http://127.0.0.1:7100/api/health
 echo.
 echo 停止方式: 关闭弹出的两个命令行窗口即可停止服务
