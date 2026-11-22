@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">灵族</title>
+  <desc id="desc">青蓝光晕与叶翼环抱的灵族修士头像</desc>
+  <g stroke="#292421" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <path fill="#70a8a0" d="M7 60c4-11 11-17 25-17s21 6 25 17Z"/>
+    <path fill="#377a82" d="M10 59c5-7 10-10 16-12l6 5 6-5c6 2 11 5 16 12Z"/>
+    <path fill="#d5ece1" d="M20 27c0-11 5-17 12-17s12 6 12 17v7c0 9-5 15-12 15s-12-6-12-15Z"/>
+    <path fill="#6ea39b" d="M18 28c0-12 5-20 14-20 10 0 15 8 14 20-5-5-9-10-10-15-4 7-11 10-18 11Z"/>
+    <path fill="#7eaa69" d="M20 26C9 23 7 16 10 10c8 1 13 6 15 13M44 26c11-3 13-10 10-16-8 1-13 6-15 13"/>
+    <path stroke="#f1d28a" d="M25 31c2-2 4-2 5 0M34 31c2-2 4-2 5 0M32 33v4M29 41c2 1 4 1 6 0"/>
+    <circle fill="#f1d28a" cx="32" cy="9" r="3"/>
+    <path stroke="#d9f4e6" d="M13 15c2 4 5 6 10 7M51 15c-2 4-5 6-10 7"/>
+  </g>
+</svg>

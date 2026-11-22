@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">灵石</title>
+  <desc id="desc">青蓝晶簇与悬浮金色灵光</desc>
+  <g stroke="#292421" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <path fill="#7fb9bf" d="m25 8 12 9-2 36H20l-4-32Z"/>
+    <path fill="#d8f0e7" d="m28 11 6 5-2 32-4-4Z"/>
+    <path fill="#4b8294" d="M12 29 22 20l2 33H8Z"/>
+    <path fill="#9ed3cc" d="m17 23 3 2 2 26h-3Z"/>
+    <path fill="#4f9e9a" d="m42 23 13 11-2 19H38Z"/>
+    <path fill="#c5e8dd" d="m43 27 8 7-1 15h-3Z"/>
+    <path fill="#f1d28a" d="M13 51h40l-4 8H17Z"/>
+    <path stroke="#f1d28a" d="M32 4V1M10 14 7 11M52 12l4-4M8 34H4M58 31h-4"/>
+    <circle fill="#f1d28a" cx="32" cy="6" r="2"/>
+  </g>
+</svg>

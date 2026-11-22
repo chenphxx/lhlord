@@ -1,0 +1,423 @@
+{
+  "version": 1,
+  "name": "lhlord-icon-set",
+  "canvas": {
+    "viewBox": "0 0 64 64",
+    "format": "svg",
+    "background": "transparent"
+  },
+  "style": {
+    "outline": "#292421",
+    "palette": {
+      "ink": "#292421",
+      "gold": "#c99b4a",
+      "ivory": "#ead8ad",
+      "cinnabar": "#b64c3e",
+      "jade": "#416d67",
+      "azure": "#6fb7bd",
+      "violet": "#77629a"
+    },
+    "recommendedSizes": [
+      16,
+      24,
+      32,
+      48,
+      64
+    ]
+  },
+  "categories": [
+    {
+      "id": "organization",
+      "name": "组织",
+      "icons": [
+        {
+          "file": "organization/sect.svg",
+          "name": "宗门",
+          "aliases": [
+            "门派"
+          ]
+        },
+        {
+          "file": "organization/family.svg",
+          "name": "家族",
+          "aliases": [
+            "世家"
+          ]
+        },
+        {
+          "file": "organization/dynasty.svg",
+          "name": "皇朝",
+          "aliases": [
+            "王朝",
+            "朝廷"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "character",
+      "name": "角色",
+      "icons": [
+        {
+          "file": "character/player.svg",
+          "name": "玩家",
+          "aliases": [
+            "主角"
+          ]
+        },
+        {
+          "file": "character/race-human.svg",
+          "name": "人族",
+          "aliases": [
+            "人类"
+          ]
+        },
+        {
+          "file": "character/race-demon.svg",
+          "name": "魔族",
+          "aliases": [
+            "魔修"
+          ]
+        },
+        {
+          "file": "character/race-beast.svg",
+          "name": "妖族",
+          "aliases": [
+            "妖兽"
+          ]
+        },
+        {
+          "file": "character/race-spirit.svg",
+          "name": "灵族",
+          "aliases": [
+            "精灵"
+          ]
+        },
+        {
+          "file": "character/race-dragon.svg",
+          "name": "龙族",
+          "aliases": [
+            "真龙"
+          ]
+        },
+        {
+          "file": "character/race-ghost.svg",
+          "name": "鬼族",
+          "aliases": [
+            "鬼修"
+          ]
+        },
+        {
+          "file": "character/spirit-beast.svg",
+          "name": "灵兽",
+          "aliases": [
+            "宠物",
+            "坐骑"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cultivation",
+      "name": "修行",
+      "icons": [
+        {
+          "file": "cultivation/technique.svg",
+          "name": "功法",
+          "aliases": [
+            "心法"
+          ]
+        },
+        {
+          "file": "cultivation/spell.svg",
+          "name": "术法",
+          "aliases": [
+            "法术"
+          ]
+        },
+        {
+          "file": "cultivation/cultivation.svg",
+          "name": "修炼",
+          "aliases": [
+            "打坐",
+            "闭关"
+          ]
+        },
+        {
+          "file": "cultivation/breakthrough.svg",
+          "name": "突破",
+          "aliases": [
+            "进阶"
+          ]
+        },
+        {
+          "file": "cultivation/dao.svg",
+          "name": "大道",
+          "aliases": [
+            "道韵"
+          ]
+        },
+        {
+          "file": "cultivation/tribulation.svg",
+          "name": "天劫",
+          "aliases": [
+            "雷劫"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "element",
+      "name": "属性道途",
+      "icons": [
+        {
+          "file": "element/metal.svg",
+          "name": "金",
+          "aliases": [
+            "金属性"
+          ]
+        },
+        {
+          "file": "element/wood.svg",
+          "name": "木",
+          "aliases": [
+            "木属性"
+          ]
+        },
+        {
+          "file": "element/water.svg",
+          "name": "水",
+          "aliases": [
+            "水属性"
+          ]
+        },
+        {
+          "file": "element/fire.svg",
+          "name": "火",
+          "aliases": [
+            "火属性"
+          ]
+        },
+        {
+          "file": "element/earth.svg",
+          "name": "土",
+          "aliases": [
+            "土属性"
+          ]
+        },
+        {
+          "file": "element/qi.svg",
+          "name": "气",
+          "aliases": [
+            "灵气",
+            "炼气"
+          ]
+        },
+        {
+          "file": "element/spirit.svg",
+          "name": "神",
+          "aliases": [
+            "神识"
+          ]
+        },
+        {
+          "file": "element/sword.svg",
+          "name": "剑",
+          "aliases": [
+            "剑道"
+          ]
+        },
+        {
+          "file": "element/body.svg",
+          "name": "体",
+          "aliases": [
+            "体修"
+          ]
+        },
+        {
+          "file": "element/escape.svg",
+          "name": "遁术",
+          "aliases": [
+            "遁法"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "item",
+      "name": "物品",
+      "icons": [
+        {
+          "file": "item/herb.svg",
+          "name": "药材",
+          "aliases": [
+            "草药"
+          ]
+        },
+        {
+          "file": "item/material.svg",
+          "name": "材料",
+          "aliases": [
+            "炼器材料"
+          ]
+        },
+        {
+          "file": "item/weapon.svg",
+          "name": "武器",
+          "aliases": [
+            "兵器"
+          ]
+        },
+        {
+          "file": "item/armor.svg",
+          "name": "护甲",
+          "aliases": [
+            "防具"
+          ]
+        },
+        {
+          "file": "item/accessory.svg",
+          "name": "饰品",
+          "aliases": [
+            "配饰"
+          ]
+        },
+        {
+          "file": "item/robe.svg",
+          "name": "法袍",
+          "aliases": [
+            "道袍"
+          ]
+        },
+        {
+          "file": "item/spirit-boat.svg",
+          "name": "灵舟",
+          "aliases": [
+            "飞舟"
+          ]
+        },
+        {
+          "file": "item/pill.svg",
+          "name": "丹药",
+          "aliases": [
+            "丹丸"
+          ]
+        },
+        {
+          "file": "item/recipe.svg",
+          "name": "丹方",
+          "aliases": [
+            "单方",
+            "药方"
+          ]
+        },
+        {
+          "file": "item/talisman.svg",
+          "name": "符箓",
+          "aliases": [
+            "灵符"
+          ]
+        },
+        {
+          "file": "item/alchemy-furnace.svg",
+          "name": "炼丹炉",
+          "aliases": [
+            "丹炉"
+          ]
+        },
+        {
+          "file": "item/spirit-stone.svg",
+          "name": "灵石",
+          "aliases": [
+            "晶石"
+          ]
+        },
+        {
+          "file": "item/artifact.svg",
+          "name": "法宝",
+          "aliases": [
+            "法器"
+          ]
+        },
+        {
+          "file": "item/storage-bag.svg",
+          "name": "储物袋",
+          "aliases": [
+            "背包",
+            "乾坤袋"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "system",
+      "name": "玩法系统",
+      "icons": [
+        {
+          "file": "system/combat.svg",
+          "name": "战斗",
+          "aliases": [
+            "对战"
+          ]
+        },
+        {
+          "file": "system/quest.svg",
+          "name": "任务",
+          "aliases": [
+            "悬赏"
+          ]
+        },
+        {
+          "file": "system/map.svg",
+          "name": "地图",
+          "aliases": [
+            "舆图"
+          ]
+        },
+        {
+          "file": "system/cave.svg",
+          "name": "洞府",
+          "aliases": [
+            "洞天"
+          ]
+        },
+        {
+          "file": "system/spirit-field.svg",
+          "name": "灵田",
+          "aliases": [
+            "药田"
+          ]
+        },
+        {
+          "file": "system/secret-realm.svg",
+          "name": "秘境",
+          "aliases": [
+            "遗迹"
+          ]
+        },
+        {
+          "file": "system/market.svg",
+          "name": "坊市",
+          "aliases": [
+            "商店",
+            "交易"
+          ]
+        },
+        {
+          "file": "system/formation.svg",
+          "name": "阵法",
+          "aliases": [
+            "禁制"
+          ]
+        },
+        {
+          "file": "system/reputation.svg",
+          "name": "声望",
+          "aliases": [
+            "功勋"
+          ]
+        }
+      ]
+    }
+  ]
+}

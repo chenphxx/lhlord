@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">炼丹炉</title>
+  <desc id="desc">三足鼎式炼丹炉与升腾丹火</desc>
+  <g stroke="#292421" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <path fill="#c99b4a" d="M19 22h26l-3 24H22Z"/>
+    <path fill="#8d6848" d="M22 28h20v18H22Z"/>
+    <path fill="#b64c3e" d="M18 18h28v7H18Z"/>
+    <path fill="#b64c3e" d="M15 13h34v5H15Z"/>
+    <path stroke="#f1d28a" d="M11 20h-4M57 20h-4M32 29v12M26 35h12"/>
+    <path fill="#6eaa73" d="M23 46h18l-3 8H26Z"/>
+    <path fill="#b64c3e" d="M17 54h7l-2 7h-4ZM40 54h7l-1 7h-4Z"/>
+    <path fill="#e98a46" d="M27 15c-4-5-2-9 1-13 3 4 5 7 2 12M37 15c4-4 3-10 0-13-3 4-4 7-1 12"/>
+    <path fill="#f1d28a" d="M31 14c-2-3-1-6 1-9 2 3 3 5 1 8Z"/>
+  </g>
+</svg>

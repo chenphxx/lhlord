@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">灵田</title>
+  <desc id="desc">层叠田垄中生长着嫩绿灵植</desc>
+  <g stroke="#292421" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <path fill="#9a7351" d="M4 38h56l-6 20H10Z"/>
+    <path fill="#b58a5d" d="M10 34h44l-4 12H14Z"/>
+    <path fill="#6f9b69" d="M17 34c-4-8-1-14 4-17 4 5 4 11 1 17ZM30 34c-4-8-1-14 4-17 4 5 4 11 1 17ZM43 34c-4-8-1-14 4-17 4 5 4 11 1 17Z"/>
+    <path stroke="#f1d28a" d="M7 45h50M10 52h45M14 59h36"/>
+    <path stroke="#4f8063" d="M21 34v-8M34 34v-8M47 34v-8"/>
+    <path fill="#5b8f84" d="M2 32c7-5 14-5 20-1 7-5 14-5 21 0 6-3 12-3 19 1v6H2Z"/>
+    <path stroke="#d9eee6" d="M9 29c4-2 8-2 12 0M34 28c4-2 8-2 12 0"/>
+  </g>
+</svg>

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">任务</title>
+  <desc id="desc">系有朱砂印记的羊皮任务卷轴</desc>
+  <g stroke="#292421" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <path fill="#ead8ad" d="M15 7h34v50H15Z"/>
+    <path fill="#c99b4a" d="M10 5h8v54h-8c3-4 3-9 0-13 3-4 3-9 0-13 3-4 3-9 0-13 3-4 3-9 0-15ZM54 5h-8v54h8c-3-4-3-9 0-13-3-4-3-9 0-13-3-4-3-9 0-13-3-4-3-9 0-15Z"/>
+    <path stroke="#9d7543" d="M22 16h20M22 23h20"/>
+    <circle fill="#b64c3e" cx="32" cy="39" r="10"/>
+    <path stroke="#f1d28a" d="M32 32v8l5 3"/>
+    <path fill="#b64c3e" d="M27 49h10v5l-5-2-5 2Z"/>
+    <path stroke="#f1d28a" d="M32 5V1M11 15H6M55 15h-5"/>
+  </g>
+</svg>

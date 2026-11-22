@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">剑</title>
+  <desc id="desc">青色剑意环绕的灵剑与金色锋芒</desc>
+  <g stroke="#292421" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <path fill="#cce8e0" d="m32 4 7 15-3 27h-8l-3-27Z"/>
+    <path fill="#6fb7bd" d="m32 11 3 9-2 21h-2l-2-21Z"/>
+    <path fill="#c99b4a" d="M17 45h30v5H17ZM29 50h6v8h-6Z"/>
+    <path stroke="#f1d28a" d="M12 20 20 25M52 20 44 25M8 36l8-3M56 36l-8-3M14 52l7-4M50 52l-7-4"/>
+    <circle fill="#f1d28a" cx="32" cy="58" r="2.5"/>
+  </g>
+</svg>

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">土</title>
+  <desc id="desc">层叠厚重山岩与悬浮土灵结晶</desc>
+  <g stroke="#292421" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <path fill="#b78a54" d="M5 55 20 24l10 15L42 14l17 41Z"/>
+    <path fill="#e1c282" d="m20 24 5 13 5 2-7-4Z"/>
+    <path fill="#8d6848" d="m42 14 9 23 8 18H37l-4-13Z"/>
+    <path fill="#6e5c45" d="M1 55c7-8 14-9 22-3 8-6 15-5 21 2 6-5 12-4 19 1v7H1Z"/>
+    <path fill="#f1d28a" d="m31 21 4-7 5 7-5 7Z"/>
+    <path stroke="#f1d28a" d="M8 42 3 38M54 34l4-4M20 53h4M43 52h5"/>
+  </g>
+</svg>

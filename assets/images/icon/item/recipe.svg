@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">丹方</title>
+  <desc id="desc">展开的丹方绘卷上画有药材与丹火</desc>
+  <g stroke="#292421" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <path fill="#ead8ad" d="M9 12h46v42H9Z"/>
+    <path fill="#c99b4a" d="M5 8h8v48H5c3-4 3-9 0-13 3-4 3-9 0-13 3-4 3-9 0-13 3-4 3-9 0-9ZM59 8h-8v48h8c-3-4-3-9 0-13-3-4-3-9 0-13-3-4-3-9 0-13-3-4-3-9 0-9Z"/>
+    <circle fill="#6eaa73" cx="22" cy="23" r="4"/>
+    <path stroke="#4f8063" d="M22 27v10M22 31c-4 0-6-2-7-6M22 34c4 0 6-2 7-6"/>
+    <path fill="#b64c3e" d="M39 18c3 5 7 8 7 13 0 4-3 7-7 7s-7-3-7-7c0-5 4-8 7-13Z"/>
+    <path stroke="#9d7543" d="M15 42h34M15 48h26"/>
+    <path fill="#416d67" d="M43 42h6v6h-6Z"/>
+  </g>
+</svg>

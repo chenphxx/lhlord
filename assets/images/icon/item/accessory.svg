@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">饰品</title>
+  <desc id="desc">金环悬挂青玉佩与朱红流苏</desc>
+  <g stroke="#292421" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <circle fill="#f1d28a" cx="32" cy="13" r="8"/>
+    <circle fill="#ead8ad" cx="32" cy="13" r="3"/>
+    <path stroke="#c99b4a" d="M32 21v8"/>
+    <path fill="#69a38a" d="M32 28c9 0 16 6 16 15 0 8-7 14-16 14s-16-6-16-14c0-9 7-15 16-15Z"/>
+    <path fill="#b9d9c4" d="M25 36c2-4 5-6 9-6-5 3-8 7-8 12 0 2 1 4 2 5-4-2-6-6-6-9Z"/>
+    <path stroke="#d6b55e" d="M23 48c5 3 13 3 18 0"/>
+    <path fill="#b64c3e" d="M31 56h2v6h-2ZM28 56h2v5h-2ZM34 56h2v5h-2Z"/>
+    <path stroke="#f1d28a" d="M12 24 8 20M52 24l4-4M8 36l4-1M56 36l-4-1"/>
+  </g>
+</svg>

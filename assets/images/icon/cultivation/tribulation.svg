@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">天劫</title>
+  <desc id="desc">翻滚劫云中劈落金色天雷</desc>
+  <g stroke="#292421" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <path fill="#4c5569" d="M8 31c-7-5-5-15 3-18 2-8 12-11 18-5 7-7 18-1 17 8 7 0 11 5 10 11-2 7-10 9-16 6-5 5-11 5-15 1-5 3-12 1-17-3Z"/>
+    <path fill="#f1d28a" d="m34 25-12 20h10l-4 14 17-24H35l6-10Z"/>
+    <path stroke="#b64c3e" d="m19 15 4 3M44 13l-4 3M15 26l5-1M50 25l-5-2"/>
+    <path fill="#55766f" d="M4 58c8-5 17-5 25-1 8-4 18-4 31 1v4H4Z"/>
+    <path stroke="#f1d28a" d="M12 49h7M45 49h8M24 55h4M38 55h5"/>
+  </g>
+</svg>

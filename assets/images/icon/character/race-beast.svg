@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">妖族</title>
+  <desc id="desc">尖耳与金色纹样的妖族兽首头像</desc>
+  <g stroke="#292421" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <path fill="#a46b3e" d="M8 60c4-12 10-18 24-18s20 6 24 18Z"/>
+    <path fill="#6b8f76" d="m10 59 10-11 8 4 4-8 4 8 8-4 10 11Z"/>
+    <path fill="#d99554" d="M14 14 27 8l7 13-12 11ZM50 14 37 8l-7 13 12 11Z"/>
+    <path fill="#d99554" d="M18 31c0-12 6-20 14-20s14 8 14 20v7c0 9-6 15-14 15s-14-6-14-15Z"/>
+    <path fill="#f0c47f" d="M24 35c0-4 3-6 8-6s8 2 8 6-3 8-8 8-8-4-8-8Z"/>
+    <path fill="#292421" d="M25 30 22 27l6 1ZM39 30l3-3-6 1Z"/>
+    <path fill="#292421" d="m29 40 3-2 3 2-3 2Z"/>
+    <path stroke="#b64c3e" d="M31 22h2M20 38l-5-3M44 38l5-3"/>
+    <path stroke="#f1d28a" d="M18 33c-3 2-4 5-3 9M46 33c3 2 4 5 3 9"/>
+  </g>
+</svg>

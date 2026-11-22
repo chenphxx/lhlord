@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">人族</title>
+  <desc id="desc">束发插簪的人族修士头像</desc>
+  <g stroke="#292421" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <path fill="#ead8ad" d="M8 60c2-10 9-16 24-16s22 6 24 16Z"/>
+    <path fill="#6b8f76" d="M9 59c3-7 7-10 12-12l4 7 7-4 7 4 4-7c6 2 10 5 12 12Z"/>
+    <path fill="#e7c9a0" d="M20 27c0-11 5-17 12-17s12 6 12 17v7c0 9-5 15-12 15s-12-6-12-15Z"/>
+    <path fill="#292421" d="M19 28c0-13 5-20 13-20 9 0 14 7 13 20-3-4-5-8-6-13-5 5-11 7-20 7Z"/>
+    <path stroke="#292421" d="M25 20c4-4 9-4 14-1M32 8V3M28 5h8"/>
+    <path stroke="#c99b4a" d="M23 13 16 9M41 13l7-4"/>
+    <path stroke="#5d4a3d" d="M26 30h3M35 30h3M32 31v5M29 39c2 1 4 1 6 0"/>
+  </g>
+</svg>

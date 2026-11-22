@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">魔族</title>
+  <desc id="desc">暗红弯角与紫色衣袍的魔族修士头像</desc>
+  <g stroke="#292421" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <path fill="#8e5b91" d="M7 60c3-11 10-17 25-17s22 6 25 17Z"/>
+    <path fill="#5c3e6f" d="m11 58 8-12 7 4 6-8 6 8 7-4 8 12Z"/>
+    <path fill="#e5b48f" d="M20 28c0-11 5-17 12-17s12 6 12 17v6c0 9-5 15-12 15s-12-6-12-15Z"/>
+    <path fill="#5a334a" d="M18 29c0-13 6-20 14-20 9 0 15 7 14 20-4-4-7-8-8-13-5 5-11 7-20 7Z"/>
+    <path fill="#b64c3e" d="M23 18C16 16 13 9 15 4c5 2 9 6 11 12M41 18c7-2 10-9 8-14-5 2-9 6-11 12"/>
+    <path stroke="#f1d28a" d="M26 31c1-2 3-2 4 0M34 31c1-2 3-2 4 0M32 32v5M29 40l3-2 3 2"/>
+    <path stroke="#b64c3e" d="M28 11 26 6M36 11l2-5"/>
+  </g>
+</svg>

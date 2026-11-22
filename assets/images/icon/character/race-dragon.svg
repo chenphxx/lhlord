@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">龙族</title>
+  <desc id="desc">青色龙首、龙角与长须构成的龙族头像</desc>
+  <g stroke="#292421" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <path fill="#3f806b" d="M8 60c4-12 11-18 24-18s20 6 24 18Z"/>
+    <path fill="#245f58" d="m11 59 9-12 7 5 5-8 5 8 7-5 9 12Z"/>
+    <path fill="#6fb094" d="M18 30c0-11 5-19 14-19s14 8 14 19v7c0 10-6 16-14 16s-14-6-14-16Z"/>
+    <path fill="#b9d8b4" d="M24 19c-2-8 1-13 5-16 4 4 5 9 2 16M40 19c2-8-1-13-5-16-4 4-5 9-2 16"/>
+    <path fill="#f1d28a" d="M23 31c2-2 4-1 5 1l-2 3-3-1ZM41 31c-2-2-4-1-5 1l2 3 3-1Z"/>
+    <path fill="#292421" d="M26 31h2M36 31h2"/>
+    <path stroke="#e8efc8" d="M23 42c-8 1-12 5-15 10M41 42c8 1 12 5 15 10M27 39c3 2 7 2 10 0"/>
+    <path stroke="#f1d28a" d="M19 24 12 18M45 24l7-6M32 14v-5"/>
+  </g>
+</svg>

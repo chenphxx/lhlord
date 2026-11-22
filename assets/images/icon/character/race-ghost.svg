@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">鬼族</title>
+  <desc id="desc">幽蓝兜帽、苍白面容与灵焰尾迹的鬼族头像</desc>
+  <g stroke="#292421" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <path fill="#39466e" d="M10 56c0-12 3-23 8-31 3-5 8-8 14-8s11 3 14 8c5 8 8 19 8 31-5 5-11 6-16 2-4 4-8 4-12 0-5 4-11 3-16-2Z"/>
+    <path fill="#687ba4" d="M19 48c0-8 2-17 5-23 2-3 5-5 8-5s6 2 8 5c3 6 5 15 5 23-3 3-6 3-9 0-3 3-5 3-8 0-3 3-6 3-9 0Z"/>
+    <path fill="#dce3dc" d="M23 32c0-8 4-13 9-13s9 5 9 13v5c0 7-4 11-9 11s-9-4-9-11Z"/>
+    <path fill="#39466e" d="M22 31c0-10 4-15 10-15s10 5 10 15c-3-2-4-6-4-10-4 4-8 5-16 5Z"/>
+    <path fill="#b64c3e" d="M26 34h3v2h-3ZM35 34h3v2h-3Z"/>
+    <path stroke="#5c4b4b" d="M32 37v3M29 43c2-1 4-1 6 0"/>
+    <path fill="#6fb7bd" d="M8 45c-4 4-5 8-4 12 3-2 6-3 10-2-3-3-4-6-6-10ZM56 45c4 4 5 8 4 12-3-2-6-3-10-2 3-3 4-6 6-10Z"/>
+  </g>
+</svg>

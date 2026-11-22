@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">水</title>
+  <desc id="desc">回旋水浪托起一滴清澈水灵</desc>
+  <g stroke="#292421" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <path fill="#79b9c0" d="M32 5c5 9 14 19 14 30a14 14 0 0 1-28 0c0-11 9-21 14-30Z"/>
+    <path fill="#d7f1e8" d="M25 31c0-5 3-10 6-14 2 5 5 10 5 14 0 4-2 7-6 7s-5-3-5-7Z"/>
+    <path fill="#4d87a0" d="M4 48c7-6 14-6 21 0 6 5 13 5 20 0 5-4 10-4 15-1v8c-5-2-9-1-14 3-7 5-15 5-22 0-6-5-13-5-20 0Z"/>
+    <path stroke="#b9e4df" d="M12 45c4-2 8-2 12 1M39 44c4-2 8-1 11 1M21 53c4-3 8-3 12 0"/>
+    <circle fill="#f7f3d5" cx="32" cy="15" r="2"/>
+  </g>
+</svg>

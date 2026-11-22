@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">坊市</title>
+  <desc id="desc">红棚商铺与案上金色灵石钱币</desc>
+  <g stroke="#292421" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <path fill="#b64c3e" d="M8 18h48l-5 10H13Z"/>
+    <path fill="#ead8ad" d="M13 28h38l-2 7H15Z"/>
+    <path fill="#e98a46" d="M12 18c0-6 3-10 8-10h4l-1 10ZM24 18l1-10h6l1 10ZM34 18l-1-10h6l2 10ZM43 18l-2-10h4c5 0 8 4 8 10Z"/>
+    <path fill="#9a7351" d="M17 35h6v22h-6ZM41 35h6v22h-6Z"/>
+    <path fill="#ead8ad" d="M23 42h18v15H23Z"/>
+    <path fill="#f1d28a" d="M41 43h15v13H41Z"/>
+    <path fill="#c99b4a" d="M44 46h9v7h-9Z"/>
+    <path stroke="#b64c3e" d="M48 47v5M46 49h4"/>
+    <path fill="#6fb7bd" d="M6 55h52v6H6Z"/>
+    <path stroke="#f1d28a" d="M32 55v-6"/>
+  </g>
+</svg>

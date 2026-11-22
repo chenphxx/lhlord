@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">药材</title>
+  <desc id="desc">绿叶环绕、顶端盛开的朱红灵药</desc>
+  <g stroke="#292421" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <path stroke="#4f8063" d="M32 57c1-10 0-20-1-30M31 39c-8-1-12-5-13-12 7 0 12 4 13 12ZM32 34c8-1 12-5 13-12-7 0-12 4-13 12Z"/>
+    <path fill="#6eaa73" d="M31 38c-13 1-20-8-17-18 10-3 18 6 17 18Z"/>
+    <path fill="#8fbd77" d="M32 33c12 0 18-9 15-18-10-2-17 7-15 18Z"/>
+    <path fill="#4f8063" d="M29 25c-9-4-10-13-4-19 8 3 10 11 4 19ZM35 22c1-10 8-15 16-11 1 8-6 14-16 11Z"/>
+    <path fill="#b64c3e" d="M24 19c0-5 3-9 8-9s8 4 8 9-3 8-8 8-8-3-8-8Z"/>
+    <path fill="#e98a46" d="M29 15c0-3 1-5 3-6 2 1 3 3 3 6s-1 5-3 6c-2-1-3-3-3-6Z"/>
+    <path stroke="#f1d28a" d="M32 5v3M24 9l2 2M40 9l-2 2"/>
+    <path fill="#7eaa69" d="M15 57c11-4 23-4 34 0-10 5-24 5-34 0Z"/>
+  </g>
+</svg>

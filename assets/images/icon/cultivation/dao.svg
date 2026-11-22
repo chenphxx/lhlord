@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">大道</title>
+  <desc id="desc">太极双鱼与八卦方位光点组成的大道印记</desc>
+  <g stroke="#292421" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <circle fill="#ead8ad" cx="32" cy="32" r="23"/>
+    <path fill="#416d67" d="M32 9a23 23 0 0 1 0 46 11.5 11.5 0 0 1 0-23 11.5 11.5 0 0 0 0-23Z"/>
+    <circle fill="#416d67" cx="32" cy="43.5" r="4.5"/>
+    <circle fill="#ead8ad" cx="32" cy="20.5" r="4.5"/>
+    <path stroke="#c99b4a" d="M32 4v5M32 55v5M4 32h5M55 32h5M12 12l4 4M48 48l4 4M52 12l-4 4M16 48l-4 4"/>
+    <circle fill="#f1d28a" cx="32" cy="4" r="2"/>
+    <circle fill="#f1d28a" cx="60" cy="32" r="2"/>
+    <circle fill="#f1d28a" cx="32" cy="60" r="2"/>
+    <circle fill="#f1d28a" cx="4" cy="32" r="2"/>
+  </g>
+</svg>

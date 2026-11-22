@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">符箓</title>
+  <desc id="desc">写有朱砂灵纹的金边黄色符纸</desc>
+  <g stroke="#292421" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <path fill="#f2deb0" d="M16 5h32v54l-5-3-5 3-6-3-5 3-6-3-5 3Z"/>
+    <path stroke="#c99b4a" d="M21 11h22v38H21Z"/>
+    <path stroke="#b64c3e" d="M32 13v10M27 18h10M32 23l-6 7M32 23l6 7M25 33h14M28 38h8M32 29v19"/>
+    <circle fill="#b64c3e" cx="32" cy="8" r="2.5"/>
+    <path stroke="#6fb7bd" d="M9 18 5 14M55 18l4-4M9 35l-4-2M55 35l4-2"/>
+  </g>
+</svg>

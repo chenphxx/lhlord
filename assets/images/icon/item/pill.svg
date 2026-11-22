@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">丹药</title>
+  <desc id="desc">金色丹环与灵光托起的朱红丹药</desc>
+  <g stroke="#292421" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <circle fill="#c99b4a" cx="32" cy="31" r="23"/>
+    <circle fill="#f1d28a" cx="32" cy="31" r="19"/>
+    <circle fill="#b64c3e" cx="32" cy="31" r="13"/>
+    <path fill="#e98a46" d="M32 20c7 0 12 5 12 11s-5 11-12 11c-5 0-9-3-11-7 3 2 6 2 8-1 3-4 1-9-3-11 2-2 4-3 6-3Z"/>
+    <path fill="#f7e6aa" d="M23 25c2-3 5-5 8-5-5 3-7 7-6 12-2-2-3-4-2-7Z"/>
+    <path stroke="#f1d28a" d="M32 3v5M13 12l4 4M51 12l-4 4M5 31h4M55 31h4"/>
+    <path fill="#6ba075" d="M39 10c5-4 10-3 13 1-4 4-9 4-13-1ZM25 10c-5-4-10-3-13 1 4 4 9 4 13-1Z"/>
+  </g>
+</svg>

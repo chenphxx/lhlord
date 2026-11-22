@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">金</title>
+  <desc id="desc">金色灵锭与锐利剑意组成的金属性印记</desc>
+  <g stroke="#292421" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <path fill="#f1d28a" d="M10 26c0-4 4-7 8-7h28c4 0 8 3 8 7v15c0 4-4 7-8 7H18c-4 0-8-3-8-7Z"/>
+    <path fill="#d1a642" d="M18 19v29M46 19v29M10 34h44"/>
+    <path fill="#e7cf9a" d="M18 19h28c4 0 8 3 8 7H10c0-4 4-7 8-7Z"/>
+    <path fill="#f6edcf" d="m32 6 4 10-4 5-4-5Z"/>
+    <path stroke="#b64c3e" d="m15 12 4 5M49 12l-4 5M26 10h12"/>
+  </g>
+</svg>

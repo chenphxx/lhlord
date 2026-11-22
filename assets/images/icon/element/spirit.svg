@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">神</title>
+  <desc id="desc">金色灵光环绕的竖瞳神识之眼</desc>
+  <g stroke="#292421" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <path fill="#ead8ad" d="M5 32c8-11 17-17 27-17s19 6 27 17c-8 11-17 17-27 17S13 43 5 32Z"/>
+    <circle fill="#6a58a0" cx="32" cy="32" r="11"/>
+    <ellipse fill="#f1d28a" cx="32" cy="32" rx="3" ry="8"/>
+    <circle fill="#292421" cx="32" cy="32" r="2"/>
+    <path stroke="#c99b4a" d="M32 8V3M32 61v-5M12 17l-4-4M52 17l4-4M12 47l-4 4M52 47l4 4"/>
+    <circle fill="#f1d28a" cx="32" cy="5" r="2"/>
+    <circle fill="#f1d28a" cx="59" cy="32" r="2"/>
+    <circle fill="#f1d28a" cx="5" cy="32" r="2"/>
+  </g>
+</svg>

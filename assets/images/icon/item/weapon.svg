@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">武器</title>
+  <desc id="desc">金柄弯刃的修士战刀</desc>
+  <g stroke="#292421" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <path fill="#dcebd9" d="M14 8c14 2 27 12 35 27l-8 6C33 26 24 17 12 11Z"/>
+    <path fill="#91b6a5" d="M17 12c10 4 20 13 26 24l-4 3C33 28 26 20 15 15Z"/>
+    <path fill="#c99b4a" d="m15 36 13-13 6 6-13 13Z"/>
+    <path fill="#7b4d39" d="m18 40 6 6-9 10-7-7Z"/>
+    <path fill="#b64c3e" d="M12 35 5 42l7 7 7-7Z"/>
+    <path stroke="#f1d28a" d="M11 40 7 44M47 17l5-5M52 27l5-3M42 11l2-5"/>
+    <circle fill="#f1d28a" cx="22" cy="37" r="2"/>
+  </g>
+</svg>

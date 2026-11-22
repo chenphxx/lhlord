@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">地图</title>
+  <desc id="desc">展开的山川地图与金色罗盘</desc>
+  <g stroke="#292421" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <path fill="#ead8ad" d="M5 15 22 9l20 7 17-7v40l-17 7-20-7-17 7Z"/>
+    <path fill="#d2bf92" d="m22 9 20 7v40l-20-7ZM5 15l17-6v40L5 55Z"/>
+    <path stroke="#6d8f7a" d="m12 39 8-10 6 5 8-12 7 8 7-5M14 25l4-6 5 3"/>
+    <path stroke="#6fb7bd" d="M16 45c6-5 12-4 17 1 4 4 8 4 12 1"/>
+    <circle fill="#f1d28a" cx="45" cy="22" r="8"/>
+    <path fill="#b64c3e" d="m45 16 2 4 5 1-4 3 1 5-4-2-4 2 1-5-4-3 5-1Z"/>
+  </g>
+</svg>

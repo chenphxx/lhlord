@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">法袍</title>
+  <desc id="desc">青白交领、金纹宽袖的修士法袍</desc>
+  <g stroke="#292421" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <path fill="#e9eee5" d="m23 9 9 7 9-7 10 7-5 15 7 27H11l7-27-5-15Z"/>
+    <path fill="#6b9c8a" d="m23 9 9 7-7 12H15ZM41 9l-9 7 7 12h10Z"/>
+    <path fill="#4f806e" d="M18 51h28v9H18Z"/>
+    <path fill="#ead8ad" d="m23 9 9 7-3 4-6-4ZM41 9l-9 7 3 4 6-4Z"/>
+    <path stroke="#c99b4a" d="M32 20v31M24 42h16M18 51h28"/>
+    <path fill="#b64c3e" d="M31 30h2v25h-2Z"/>
+    <path stroke="#f1d28a" d="M14 37 8 29M50 37l6-8"/>
+  </g>
+</svg>

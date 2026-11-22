@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">储物袋</title>
+  <desc id="desc">系有金绳与符文扣的锦缎储物袋</desc>
+  <g stroke="#292421" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <path fill="#8d6848" d="M22 10h20v8H22Z"/>
+    <path fill="#ead8ad" d="M16 20h32v6H16Z"/>
+    <path fill="#6b9c8a" d="M18 25c0 10-4 14-6 23-2 9 5 12 20 12s22-3 20-12c-2-9-6-13-6-23Z"/>
+    <path fill="#4f806e" d="M31 28h3v30h-3Z"/>
+    <path stroke="#d6b55e" d="M19 24c3 3 7 4 13 4s10-1 13-4M26 17c0-3 3-5 6-5s6 2 6 5"/>
+    <circle fill="#f1d28a" cx="32" cy="38" r="7"/>
+    <path stroke="#b64c3e" d="M32 33v10M28 38h8"/>
+    <path stroke="#f1d28a" d="M12 36 8 33M52 36l4-3M14 55l-4 2M50 55l4 2"/>
+  </g>
+</svg>

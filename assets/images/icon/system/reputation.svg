@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">声望</title>
+  <desc id="desc">朱红绶带悬挂的青玉功勋印玺</desc>
+  <g stroke="#292421" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <path fill="#b64c3e" d="m20 27 6 30-8-4-6 4 2-30ZM44 27l-6 30 8-4 6 4-2-30Z"/>
+    <path fill="#d6b55e" d="M14 9h36v23H14Z"/>
+    <path fill="#f1d28a" d="M18 13h28v15H18Z"/>
+    <path fill="#4f806e" d="M22 18h20v6H22Z"/>
+    <path fill="#69a38a" d="m32 7 5 8H27Z"/>
+    <circle fill="#b64c3e" cx="32" cy="21" r="4"/>
+    <path stroke="#f1d28a" d="M32 15v3M32 24v3M26 21h3M35 21h3"/>
+    <path stroke="#c99b4a" d="M8 32c2-4 5-6 8-7M56 32c-2-4-5-6-8-7"/>
+  </g>
+</svg>

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">洞府</title>
+  <desc id="desc">山岩深处透出青蓝灵光的洞府入口</desc>
+  <g stroke="#292421" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <path fill="#7d8580" d="M4 56 18 19l11 10L42 7l18 49Z"/>
+    <path fill="#a7afa5" d="m18 19 11 10-2 7-9-7Z"/>
+    <path fill="#596f70" d="m42 7 8 21-8 6-4-17Z"/>
+    <path fill="#202d34" d="M20 56c0-15 5-23 12-23s12 8 12 23Z"/>
+    <path fill="#6fb7bd" d="M27 56c0-10 2-15 5-15s5 5 5 15Z"/>
+    <path stroke="#d9eee6" d="M32 45v8M28 50l4-5 4 5"/>
+    <path fill="#d9eee6" d="M2 57c8-5 15-5 22 0 8-5 15-5 22 0 6-3 12-3 16-1v6H2Z"/>
+    <path stroke="#f1d28a" d="M11 36h5M49 37h5M7 48h4M53 49h4"/>
+  </g>
+</svg>

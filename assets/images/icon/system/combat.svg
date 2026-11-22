@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">战斗</title>
+  <desc id="desc">金红光焰中交叉的两柄战剑</desc>
+  <g stroke="#292421" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <path fill="#dcebd9" d="m12 6 35 38-6 6L6 12Z"/>
+    <path fill="#9fc1ae" d="m16 10 27 30-3 3L13 13Z"/>
+    <path fill="#dcebd9" d="m52 6-35 38 6 6 35-38Z"/>
+    <path fill="#9fc1ae" d="m48 10-27 30 3 3 27-30Z"/>
+    <path fill="#c99b4a" d="m38 43 8-3 5 5-8 4ZM25 43l-8-3-5 5 8 4Z"/>
+    <path fill="#7b4d39" d="m40 45 5 5-9 9-5-5ZM23 45l-5 5 9 9 5-5Z"/>
+    <path fill="#b64c3e" d="M32 23 27 32l5 5 5-5Z"/>
+    <path stroke="#f1d28a" d="M32 14v5M32 43v7M17 54l5-5M47 54l-5-5"/>
+  </g>
+</svg>

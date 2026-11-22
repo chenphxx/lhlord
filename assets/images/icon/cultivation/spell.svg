@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">术法</title>
+  <desc id="desc">展开的术法卷轴中迸发青金色闪电</desc>
+  <g stroke="#292421" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <path fill="#ead8ad" d="M14 13h36v38H14Z"/>
+    <path fill="#c99b4a" d="M8 11h11v42H8c3-3 3-8 0-11 3-3 3-7 0-10 3-3 3-8 0-10 3-3 3-8 0-11ZM56 11H45v42h11c-3-3-3-8 0-11-3-3-3-7 0-10-3-3-3-8 0-10-3-3-3-8 0-11Z"/>
+    <path fill="#e0bf6b" d="m34 17-11 17h8l-3 14 13-20h-8Z"/>
+    <path stroke="#6fb7bd" d="M18 19 23 23M46 34l-4-4M18 44l5-4"/>
+    <path stroke="#f1d28a" d="M38 13v3M49 23h3M13 31h3"/>
+  </g>
+</svg>

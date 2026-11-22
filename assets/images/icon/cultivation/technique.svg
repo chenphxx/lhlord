@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">功法</title>
+  <desc id="desc">展开的功法书卷与悬浮金色符文</desc>
+  <g stroke="#292421" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <path fill="#ead8ad" d="M6 19c8-4 17-3 26 4v32c-9-6-18-7-26-4ZM58 19c-8-4-17-3-26 4v32c9-6 18-7 26-4Z"/>
+    <path fill="#c99b4a" d="M6 19v32c8-3 17-2 26 4-9-2-18-1-26 4ZM58 19v32c-8-3-17-2-26 4 9-2 18-1 26 4Z"/>
+    <path stroke="#9d7543" d="M13 28c5-1 10 0 14 2M13 36c5-1 10 0 14 2M51 28c-5-1-10 0-14 2M51 36c-5-1-10 0-14 2"/>
+    <path stroke="#c99b4a" d="M32 25v16M27 29h10M27 37h10M32 29l-3 4 3 4 3-4Z"/>
+    <circle fill="#f1d28a" cx="32" cy="12" r="3"/>
+    <path stroke="#d4a74e" d="M32 7V4M28 9 26 7M36 9l2-2M32 17v2"/>
+  </g>
+</svg>

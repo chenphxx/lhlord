@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">体</title>
+  <desc id="desc">肌肉线条明显的握拳与环绕气劲</desc>
+  <g stroke="#292421" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <path fill="#e0b27d" d="M19 23c0-6 4-10 10-10h9c7 0 12 5 12 12v14c0 11-7 18-17 18H24c-7 0-12-5-12-12V32c0-4 2-7 7-9Z"/>
+    <path fill="#f1cf9a" d="M20 31v10c0 5 3 8 8 8h5v-7H26c-3 0-5-2-5-5v-9Z"/>
+    <path stroke="#9a6748" d="M31 22v16M39 23v16M47 25v14M31 38h16M22 38h9"/>
+    <path fill="#416d67" d="M7 49c5-2 10-2 14 0M43 54c5-2 9-2 14 0"/>
+    <path stroke="#f1d28a" d="M12 19 7 14M52 15l-5 5M8 36l-5-1M57 31l-5 2"/>
+  </g>
+</svg>

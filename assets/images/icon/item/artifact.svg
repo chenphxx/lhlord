@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">法宝</title>
+  <desc id="desc">云气托举的旋转青色法球</desc>
+  <g stroke="#292421" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <circle fill="#6fb7bd" cx="32" cy="28" r="15"/>
+    <circle fill="#d9eee6" cx="27" cy="23" r="5"/>
+    <path stroke="#f1d28a" d="M32 12c8 0 15 7 15 16S40 44 32 44 17 37 17 28"/>
+    <path fill="#c99b4a" d="M32 44h4v7h-4Z"/>
+    <path fill="#ead8ad" d="M17 50c6-5 11-5 15-1 4-4 10-4 15 1-6 5-11 5-15 1-4 4-10 4-15-1Z"/>
+    <path stroke="#f1d28a" d="M9 20 5 16M55 20l4-4M10 37l-5 1M54 37l5 1M32 8V3"/>
+    <circle fill="#f1d28a" cx="32" cy="5" r="2"/>
+  </g>
+</svg>

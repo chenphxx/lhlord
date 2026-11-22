@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">家族</title>
+  <desc id="desc">绿瓦宅院与家族树徽记</desc>
+  <g stroke="#292421" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <path fill="#4f806e" d="m6 30 26-18 26 18-5-8H11Z"/>
+    <path fill="#ead8ad" d="M11 29h42v27H11Z"/>
+    <path fill="#b64c3e" d="M26 38h12v18H26Z"/>
+    <path fill="#c99b4a" d="M37 41h3v14h-3Z"/>
+    <path fill="#6b8f76" d="M15 36h8v10h-8ZM42 36h8v10h-8Z"/>
+    <circle fill="#f3d788" cx="32" cy="24" r="7"/>
+    <path stroke="#4f806e" d="M32 31v8M32 34c-5 0-8-3-8-7M32 36c5 0 8-3 8-7"/>
+    <circle fill="#b64c3e" cx="24" cy="27" r="2.2"/>
+    <circle fill="#b64c3e" cx="40" cy="29" r="2.2"/>
+    <circle fill="#b64c3e" cx="32" cy="18" r="2.2"/>
+  </g>
+</svg>

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">宗门</title>
+  <desc id="desc">云海群山之前立着一座朱漆宗门山门</desc>
+  <g stroke="#292421" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <path fill="#55766f" d="M5 48 22 20l10 16 7-10 15 22Z"/>
+    <path fill="#d9eadf" d="m17 28 5-8 5 8-5-2Z"/>
+    <path fill="#487b67" d="M1 55c6-5 12-5 19-1 6 3 11 3 17-1 7-4 13-4 26 2v5H1Z"/>
+    <path stroke="#c99b4a" d="M18 30v23M46 30v23M14 34h36M17 28h30"/>
+    <path fill="#b64c3e" d="m12 29 20-11 20 11-4-8H16Z"/>
+    <path fill="#b64c3e" d="M16 33h32v5H16Z"/>
+    <path stroke="#f0cf82" d="M32 29v24M24 41h16"/>
+  </g>
+</svg>

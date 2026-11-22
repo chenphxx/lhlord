@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">材料</title>
+  <desc id="desc">带有金色矿脉的石料、金属与灵木素材</desc>
+  <g stroke="#292421" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <path fill="#8b8e8b" d="m5 48 11-20 15 7-5 20Z"/>
+    <path fill="#b9b5a4" d="m16 28 8-3 7 10-15 7Z"/>
+    <path fill="#596f70" d="m27 23 13-11 17 14-10 17-15-7Z"/>
+    <path fill="#7eaa92" d="m40 12 9 3 8 11-10 17-4-17Z"/>
+    <path fill="#8a6748" d="m29 39 14-14 10 15-8 17-16-1Z"/>
+    <path stroke="#d3ad5e" d="m10 44 7-12 7 4M33 27l10-8 7 6M33 45l8-10 6 9"/>
+    <path fill="#f1d28a" d="m40 32 5-4 4 6-5 5Z"/>
+    <path fill="#e1c282" d="M4 56c13-4 27-3 41 0 7 2 12 1 15-1v6H4Z"/>
+  </g>
+</svg>

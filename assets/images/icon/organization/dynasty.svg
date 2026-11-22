@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">皇朝</title>
+  <desc id="desc">金色朝阳下层层展开的宫殿屋顶</desc>
+  <g stroke="#292421" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <circle fill="#d86b48" cx="32" cy="18" r="9"/>
+    <path stroke="#f4d287" d="M32 10v16M24 18h16"/>
+    <path fill="#c99b4a" d="m8 34 24-12 24 12-5-7H13Z"/>
+    <path fill="#b64c3e" d="M12 32h40v7H12Z"/>
+    <path fill="#6a827e" d="M18 37h28v19H18Z"/>
+    <path fill="#c99b4a" d="M14 54h36v5H14Z"/>
+    <path stroke="#f1d28a" d="M24 41v15M32 41v15M40 41v15"/>
+    <path stroke="#f1d28a" d="M28 43h8v7h-8Z"/>
+  </g>
+</svg>

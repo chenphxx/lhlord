@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">灵兽</title>
+  <desc id="desc">踏云而行的青色小灵兽与金色铃铛</desc>
+  <g stroke="#292421" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <path fill="#78a69a" d="M14 28 25 21l8 8-4 8-10 2Z"/>
+    <path fill="#9dc7b4" d="M17 21 15 12l8 4 3 7Z"/>
+    <path fill="#5b8f84" d="M29 24c0-8 6-13 14-13 9 0 15 6 15 15 0 7-4 13-11 16l-2 10-6-8H27c-6 0-10-4-10-9 0-5 4-9 10-9Z"/>
+    <path fill="#c7e4d0" d="M36 20c1-3 4-5 8-5 5 0 8 3 9 7-4-1-7-1-10 1Z"/>
+    <path fill="#292421" d="M33 26h3v3h-3ZM46 26h3v3h-3Z"/>
+    <path stroke="#b64c3e" d="m25 31 7 1M41 47c-4 5-3 11 3 14 3-4 3-9 0-14"/>
+    <circle fill="#f1d28a" cx="23" cy="38" r="3"/>
+    <path stroke="#c99b4a" d="M20 41 18 46M26 41l2 5"/>
+    <path fill="#d9eee6" d="M4 54c7-5 14-4 20 0 6-4 13-4 20 0 5-3 10-3 16 0v5H4Z"/>
+  </g>
+</svg>
