@@ -2,8 +2,10 @@ import {
     ApiError,
     createCard,
     deleteCard,
+    exportCatalog,
     getCards,
     getCatalog,
+    importCatalog,
     updateCard
 } from "./api";
 import type {
@@ -91,6 +93,7 @@ let navLayout: NavLayout | null = null;
 let draggedNavTypeId: string | null = null;
 let navDropPlan: NavDropPlan | null = null;
 let suppressNavClick = false;
+let dataTransferBusy: "export" | "import" | null = null;
 
 const primaryNavTypeIds = [
     "sect",
@@ -852,7 +855,40 @@ function renderApp(): void
                         <span class="brand-subtitle">修仙对象录</span>
                     </span>
                 </a>
-                <p class="topbar-note">万物有灵 · 因缘可循</p>
+                <div class="brand-tools">
+                    <p class="topbar-note">万物有灵 · 因缘可循</p>
+                    <div class="data-actions" aria-label="数据导入导出">
+                        <button
+                            class="data-action-button"
+                            type="button"
+                            data-action="export-data"
+                            title="导出全部数据为 ZIP 压缩包"
+                            ${dataTransferBusy ? "disabled" : ""}
+                        >
+                            <span aria-hidden="true">↓</span>
+                            ${dataTransferBusy === "export" ? "导出中" : "导出"}
+                        </button>
+                        <button
+                            class="data-action-button"
+                            type="button"
+                            data-action="trigger-import"
+                            title="从 ZIP 压缩包导入全部数据"
+                            ${dataTransferBusy ? "disabled" : ""}
+                        >
+                            <span aria-hidden="true">↑</span>
+                            ${dataTransferBusy === "import" ? "导入中" : "导入"}
+                        </button>
+                        <input
+                            id="import-archive"
+                            class="visually-hidden"
+                            type="file"
+                            accept=".zip,application/zip"
+                            aria-hidden="true"
+                            tabindex="-1"
+                            ${dataTransferBusy ? "disabled" : ""}
+                        >
+                    </div>
+                </div>
             </div>
             <nav class="object-nav" aria-label="对象类型">
                 <span class="object-nav-balance" aria-hidden="true"></span>
@@ -3168,6 +3204,110 @@ function handleObjectNavWheel(event: WheelEvent): void
 }
 
 
+function archiveDateStamp(): string
+{
+    const now = new Date();
+    const pad = (value: number) => String(value).padStart(2, "0");
+    return [
+        now.getFullYear(),
+        pad(now.getMonth() + 1),
+        pad(now.getDate()),
+        "-",
+        pad(now.getHours()),
+        pad(now.getMinutes()),
+        pad(now.getSeconds())
+    ].join("");
+}
+
+
+function downloadArchive(blob: Blob): void
+{
+    const objectUrl = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = objectUrl;
+    link.download = `lhlord-data-${archiveDateStamp()}.zip`;
+    document.body.append(link);
+    link.click();
+    link.remove();
+    window.setTimeout(
+        () => URL.revokeObjectURL(objectUrl),
+        1000
+    );
+}
+
+
+async function exportAppData(): Promise<void>
+{
+    if (dataTransferBusy)
+    {
+        return;
+    }
+
+    dataTransferBusy = "export";
+    renderApp();
+    try
+    {
+        const blob = await exportCatalog(getNavLayout());
+        downloadArchive(blob);
+        showToast("全部数据已导出为 ZIP 压缩包", "success");
+    }
+    catch (error)
+    {
+        showToast(errorMessage(error), "error");
+    }
+    finally
+    {
+        dataTransferBusy = null;
+        renderApp();
+    }
+}
+
+
+async function importArchiveFile(file: File): Promise<void>
+{
+    if (dataTransferBusy)
+    {
+        return;
+    }
+    if (file.size > 50 * 1024 * 1024)
+    {
+        showToast("导入压缩包不能超过 50 MB", "error");
+        return;
+    }
+    const confirmed = window.confirm(
+        "导入会覆盖当前全部卡片和关联关系，是否继续？\n\n建议先使用“导出”备份当前数据。"
+    );
+    if (!confirmed)
+    {
+        return;
+    }
+
+    dataTransferBusy = "import";
+    renderApp();
+    try
+    {
+        const result = await importCatalog(file);
+        if (result.nav_layout)
+        {
+            navLayout = normalizeNavLayout(result.nav_layout);
+            saveNavLayout();
+        }
+        showToast(
+            `已导入 ${result.imported_cards} 张卡片和 ${result.imported_relations} 条关联`,
+            "success"
+        );
+        dataTransferBusy = null;
+        await loadCurrentCards();
+    }
+    catch (error)
+    {
+        dataTransferBusy = null;
+        renderApp();
+        showToast(errorMessage(error), "error");
+    }
+}
+
+
 async function handleAppClick(event: MouseEvent): Promise<void>
 {
     const target = event.target;
@@ -3201,6 +3341,16 @@ async function handleAppClick(event: MouseEvent): Promise<void>
     if (action === "retry-load")
     {
         await loadCurrentCards();
+        return;
+    }
+    if (action === "export-data")
+    {
+        await exportAppData();
+        return;
+    }
+    if (action === "trigger-import")
+    {
+        document.querySelector<HTMLInputElement>("#import-archive")?.click();
         return;
     }
     if (action === "toggle-other-nav")
@@ -3245,6 +3395,27 @@ async function handleAppClick(event: MouseEvent): Promise<void>
 }
 
 
+function handleAppChange(event: Event): void
+{
+    const target = event.target;
+    if
+    (
+        !(target instanceof HTMLInputElement)
+        || target.id !== "import-archive"
+    )
+    {
+        return;
+    }
+
+    const file = target.files?.[0];
+    target.value = "";
+    if (file)
+    {
+        void importArchiveFile(file);
+    }
+}
+
+
 async function handleHashChange(): Promise<void>
 {
     if (!catalog)
@@ -3262,6 +3433,7 @@ async function handleHashChange(): Promise<void>
 app.addEventListener("click", (event) => {
     void handleAppClick(event);
 });
+app.addEventListener("change", handleAppChange);
 app.addEventListener("dragstart", handleNavDragStart);
 app.addEventListener("dragend", handleNavDragEnd);
 app.addEventListener("dragover", handleNavDragOver);

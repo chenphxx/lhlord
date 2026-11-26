@@ -228,6 +228,14 @@ h4
 }
 
 
+.brand-tools
+{
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+
 .topbar-note
 {
     margin: 0;
@@ -235,6 +243,71 @@ h4
     font-family: var(--display);
     font-size: 14px;
     letter-spacing: 0.18em;
+}
+
+
+.data-actions
+{
+    display: flex;
+    padding-left: 16px;
+    border-left: 1px solid rgba(91, 69, 48, 0.18);
+    gap: 6px;
+}
+
+
+.data-action-button
+{
+    display: inline-flex;
+    min-height: 34px;
+    padding: 6px 10px;
+    border: 1px solid rgba(91, 69, 48, 0.24);
+    border-radius: 3px;
+    color: var(--ink-soft);
+    background: rgba(255, 250, 238, 0.58);
+    cursor: pointer;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    transition:
+        color 160ms ease,
+        background 160ms ease,
+        border-color 160ms ease,
+        transform 160ms ease;
+}
+
+
+.data-action-button span
+{
+    color: var(--gold-deep);
+    font-family: Georgia, serif;
+    font-size: 15px;
+    line-height: 1;
+}
+
+
+.data-action-button:hover:not(:disabled)
+{
+    border-color: rgba(156, 113, 51, 0.48);
+    color: var(--ink);
+    background: #fff9eb;
+    transform: translateY(-1px);
+}
+
+
+.visually-hidden
+{
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    margin: -1px !important;
+    clip: rect(0 0 0 0) !important;
+    clip-path: inset(50%) !important;
+    overflow: hidden !important;
+    white-space: nowrap !important;
 }
 
 
@@ -2202,6 +2275,17 @@ button:disabled
     .topbar-note
     {
         display: none;
+    }
+
+    .brand-tools
+    {
+        gap: 0;
+    }
+
+    .data-actions
+    {
+        padding-left: 0;
+        border-left: 0;
     }
 
     .object-nav

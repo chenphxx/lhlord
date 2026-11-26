@@ -67,6 +67,24 @@ function extractErrorDetail(payload: unknown): string
 }
 
 
+async function throwResponseError(response: Response): Promise<never>
+{
+    let payload: unknown = null;
+    try
+    {
+        payload = await response.json();
+    }
+    catch
+    {
+        payload = null;
+    }
+    throw new ApiError(
+        extractErrorDetail(payload),
+        response.status
+    );
+}
+
+
 async function request<T>
 (
     path: string,
@@ -98,19 +116,7 @@ async function request<T>
 
     if (!response.ok)
     {
-        let payload: unknown = null;
-        try
-        {
-            payload = await response.json();
-        }
-        catch
-        {
-            payload = null;
-        }
-        throw new ApiError(
-            extractErrorDetail(payload),
-            response.status
-        );
+        await throwResponseError(response);
     }
 
     if (response.status === 204)
@@ -119,6 +125,94 @@ async function request<T>
     }
 
     return response.json() as Promise<T>;
+}
+
+
+export interface ArchiveImportResult
+{
+    imported_cards: number;
+    imported_relations: number;
+    nav_layout: {
+        primary: string[];
+        other: string[];
+    } | null;
+}
+
+
+export async function exportCatalog
+(
+    navLayout: {
+        primary: string[];
+        other: string[];
+    }
+): Promise<Blob>
+{
+    let response: Response;
+    try
+    {
+        response = await fetch
+        (
+            "/api/export",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    nav_layout: navLayout
+                })
+            }
+        );
+    }
+    catch
+    {
+        throw new ApiError(
+            "无法连接后端服务，数据导出失败",
+            0
+        );
+    }
+
+    if (!response.ok)
+    {
+        await throwResponseError(response);
+    }
+    return response.blob();
+}
+
+
+export async function importCatalog
+(
+    file: File
+): Promise<ArchiveImportResult>
+{
+    let response: Response;
+    try
+    {
+        response = await fetch
+        (
+            "/api/import",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/zip"
+                },
+                body: await file.arrayBuffer()
+            }
+        );
+    }
+    catch
+    {
+        throw new ApiError(
+            "无法连接后端服务，数据导入失败",
+            0
+        );
+    }
+
+    if (!response.ok)
+    {
+        await throwResponseError(response);
+    }
+    return response.json() as Promise<ArchiveImportResult>;
 }
 
 
