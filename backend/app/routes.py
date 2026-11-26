@@ -68,6 +68,7 @@ def get_catalog() -> dict[str, object]:
 )
 def create_visit(
     payload: VisitRequest,
+    request: Request,
     session: Session = Depends(get_db)
 ) -> VisitorStats:
     """
@@ -78,7 +79,12 @@ def create_visit(
 
     return record_visit(
         session=session,
-        payload=payload
+        payload=payload,
+        ip_address=(
+            request.client.host
+            if request.client
+            else None
+        )
     )
 
 

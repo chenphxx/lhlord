@@ -1262,6 +1262,26 @@ function renderVisitorStatsBody(): string
                 `
                 : `<p class="stats-empty">尚未记录分类浏览</p>`}
         </section>
+        <section class="stats-section">
+            <h3>最近访问与 IP</h3>
+            ${visitors.recent.length
+                ? `
+                    <div class="visitor-record-list">
+                        ${visitors.recent
+                            .map(
+                                (visit) => `
+                                    <div class="visitor-record-row">
+                                        <strong>${escapeHtml(visit.ip_address)}</strong>
+                                        <span>${escapeHtml(entityTypeLabel(visit.card_type))}</span>
+                                        <time>${escapeHtml(formatOperationTime(visit.visited_at))}</time>
+                                    </div>
+                                `
+                            )
+                            .join("")}
+                    </div>
+                `
+                : `<p class="stats-empty">尚未记录访客 IP</p>`}
+        </section>
     `;
 }
 
@@ -1325,6 +1345,7 @@ function renderOperationStatsBody(): string
 
 function renderOperationLog(entry: OperationLogEntry): string
 {
+    const changes = entry.details.changes ?? [];
     return `
         <article class="operation-log-row">
             <span class="operation-badge operation-badge--${escapeHtml(entry.action)}">
@@ -1332,10 +1353,44 @@ function renderOperationLog(entry: OperationLogEntry): string
             </span>
             <div>
                 <p>${escapeHtml(entry.summary)}</p>
+                ${changes.length
+                    ? `
+                        <div class="operation-change-list">
+                            ${changes
+                                .map(
+                                    (change) => `
+                                        <div class="operation-change-row">
+                                            <span class="operation-change-field">
+                                                ${escapeHtml(change.field)}
+                                            </span>
+                                            <span class="operation-change-before">
+                                                ${escapeHtml(displayChangeValue(change.before))}
+                                            </span>
+                                            <span class="operation-change-arrow" aria-hidden="true">→</span>
+                                            <span class="operation-change-after">
+                                                ${escapeHtml(displayChangeValue(change.after))}
+                                            </span>
+                                        </div>
+                                    `
+                                )
+                                .join("")}
+                        </div>
+                    `
+                    : ""}
                 <time>${escapeHtml(formatOperationTime(entry.created_at))}</time>
             </div>
         </article>
     `;
+}
+
+
+function displayChangeValue(value: string | null): string
+{
+    if (value === null)
+    {
+        return "（无）";
+    }
+    return value || "（空）";
 }
 
 

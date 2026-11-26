@@ -614,6 +614,52 @@ h4
 }
 
 
+.visitor-record-list
+{
+    display: flex;
+    max-height: 250px;
+    overflow-y: auto;
+    flex-direction: column;
+    gap: 1px;
+    background: rgba(84, 61, 39, 0.1);
+}
+
+
+.visitor-record-row
+{
+    display: grid;
+    min-height: 36px;
+    padding: 7px 10px;
+    background: #f8f0e1;
+    align-items: center;
+    grid-template-columns: minmax(120px, 1fr) auto auto;
+    gap: 14px;
+    font-size: 10px;
+}
+
+
+.visitor-record-row strong
+{
+    color: var(--ink);
+    font-family: Consolas, "SFMono-Regular", monospace;
+    font-size: 10px;
+    font-weight: 600;
+}
+
+
+.visitor-record-row span
+{
+    color: var(--jade-deep);
+}
+
+
+.visitor-record-row time
+{
+    color: var(--ink-faint);
+    font-family: Georgia, serif;
+}
+
+
 .operation-action-list
 {
     display: flex;
@@ -700,6 +746,55 @@ h4
     margin: 0 0 4px;
     color: var(--ink);
     font-size: 12px;
+}
+
+
+.operation-change-list
+{
+    display: flex;
+    margin: 7px 0 6px;
+    padding: 7px 0;
+    border-top: 1px solid rgba(89, 68, 48, 0.1);
+    border-bottom: 1px solid rgba(89, 68, 48, 0.1);
+    flex-direction: column;
+    gap: 5px;
+}
+
+
+.operation-change-row
+{
+    display: grid;
+    color: var(--ink-faint);
+    align-items: baseline;
+    grid-template-columns: minmax(90px, 0.8fr) minmax(70px, 1fr) auto minmax(70px, 1fr);
+    gap: 7px;
+    font-size: 10px;
+}
+
+
+.operation-change-field
+{
+    color: var(--ink-soft);
+    font-weight: 700;
+}
+
+
+.operation-change-before
+{
+    text-decoration: line-through;
+    text-decoration-color: rgba(182, 76, 62, 0.42);
+}
+
+
+.operation-change-arrow
+{
+    color: var(--gold-deep);
+}
+
+
+.operation-change-after
+{
+    color: var(--jade-deep);
 }
 
 
@@ -2937,6 +3032,16 @@ button:disabled
         padding-right: 0;
         padding-left: 0;
         gap: 7px;
+    }
+
+    .operation-change-row
+    {
+        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    }
+
+    .operation-change-field
+    {
+        grid-column: 1 / -1;
     }
 
     .editor-header

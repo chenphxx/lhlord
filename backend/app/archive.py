@@ -101,6 +101,7 @@ class ImportVisit(BaseModel):
 
     id: UUID
     visitor_id: str = Field(min_length=8, max_length=64)
+    ip_address: str | None = Field(default=None, max_length=45)
     card_type: str = Field(min_length=1, max_length=32)
     visited_at: datetime
 
@@ -286,6 +287,7 @@ def export_archive(
             {
                 "id": str(event.id),
                 "visitor_id": event.visitor_id,
+                "ip_address": event.ip_address,
                 "card_type": event.card_type,
                 "visited_at": event.visited_at
             }
@@ -757,6 +759,11 @@ def import_archive(
             VisitEvent(
                 id=visit.id,
                 visitor_id=visit.visitor_id.strip(),
+                ip_address=(
+                    visit.ip_address.strip()
+                    if visit.ip_address
+                    else None
+                ),
                 card_type=visit.card_type,
                 visited_at=_as_utc(visit.visited_at)
             )

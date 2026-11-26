@@ -50,6 +50,16 @@ class PageVisitStat(BaseModel):
     views: int
 
 
+class RecentVisit(BaseModel):
+    """One recent anonymous visit with its network address."""
+
+    id: UUID
+    visitor_id: str
+    ip_address: str
+    card_type: str
+    visited_at: datetime
+
+
 class VisitorStats(BaseModel):
     """Complete visitor statistics returned to the browser."""
 
@@ -59,6 +69,7 @@ class VisitorStats(BaseModel):
     today_views: int
     daily: list[DailyVisitStat]
     pages: list[PageVisitStat]
+    recent: list[RecentVisit]
 
 
 class OperationLogOut(BaseModel):
@@ -220,6 +231,11 @@ def visitor_stats(session: Session) -> VisitorStats:
         )
         for card_type, unique_visitors, views in page_rows
     ]
+    recent_events = session.scalars(
+        select(VisitEvent)
+        .order_by(VisitEvent.visited_at.desc())
+        .limit(20)
+    ).all()
 
     return VisitorStats(
         total_visitors=total_visitors,
@@ -227,13 +243,24 @@ def visitor_stats(session: Session) -> VisitorStats:
         total_views=total_views,
         today_views=today_views,
         daily=daily,
-        pages=pages
+        pages=pages,
+        recent=[
+            RecentVisit(
+                id=event.id,
+                visitor_id=event.visitor_id,
+                ip_address=event.ip_address or "未知",
+                card_type=event.card_type,
+                visited_at=event.visited_at
+            )
+            for event in recent_events
+        ]
     )
 
 
 def record_visit(
     session: Session,
-    payload: VisitRequest
+    payload: VisitRequest,
+    ip_address: str | None
 ) -> VisitorStats:
     """
     @brief Record one anonymous category view and return updated totals
@@ -250,6 +277,7 @@ def record_visit(
     session.add(
         VisitEvent(
             visitor_id=payload.visitor_id,
+            ip_address=ip_address,
             card_type=payload.card_type
         )
     )

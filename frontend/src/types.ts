@@ -150,6 +150,16 @@ export interface PageVisitStat
 }
 
 
+export interface RecentVisit
+{
+    id: string;
+    visitor_id: string;
+    ip_address: string;
+    card_type: string;
+    visited_at: string;
+}
+
+
 export interface VisitorStats
 {
     total_visitors: number;
@@ -158,6 +168,15 @@ export interface VisitorStats
     today_views: number;
     daily: DailyVisitStat[];
     pages: PageVisitStat[];
+    recent: RecentVisit[];
+}
+
+
+export interface FieldChange
+{
+    field: string;
+    before: string | null;
+    after: string | null;
 }
 
 
@@ -168,7 +187,10 @@ export interface OperationLogEntry
     entity_type: string | null;
     entity_id: string | null;
     summary: string;
-    details: Record<string, unknown>;
+    details: {
+        changes?: FieldChange[];
+        [key: string]: unknown;
+    };
     created_at: string;
 }
 

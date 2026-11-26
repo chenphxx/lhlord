@@ -542,6 +542,7 @@ def test_visitor_and_operation_statistics(
     assert visitor_stats["total_views"] == 3
     assert visitor_stats["today_views"] == 3
     assert len(visitor_stats["daily"]) == 7
+    assert visitor_stats["recent"][0]["ip_address"]
 
     card = create_card(
         client,
@@ -575,3 +576,237 @@ def test_visitor_and_operation_statistics(
         "update",
         "create"
     ]
+    update_changes = stats["operations"]["recent"][1]["details"]["changes"]
+    assert {
+        "field": "名称",
+        "before": "青云宗",
+        "after": "青云仙宗"
+    } in update_changes
+
+
+def test_category_field_schema_is_synchronized(
+    client: TestClient
+) -> None:
+    """
+    @brief Verify adding a field adds an empty field to sibling cards
+    """
+
+    first = create_card(
+        client,
+        "sect",
+        "青云宗",
+        "organization/sect.svg"
+    )
+    second = create_card(
+        client,
+        "sect",
+        "云岚宗",
+        "organization/sect.svg"
+    )
+    update_response = client.patch(
+        f"/api/cards/{first['id']}",
+        json={
+            "custom_fields": [
+                {
+                    "key": "山门",
+                    "value": "东域"
+                }
+            ]
+        }
+    )
+    assert update_response.status_code == 200
+
+    second_response = client.get(
+        f"/api/cards/{second['id']}"
+    )
+    assert second_response.json()["custom_fields"] == [
+        {
+            "key": "山门",
+            "value": ""
+        }
+    ]
+
+    schema_response = client.get(
+        "/api/card-types/sect/schema"
+    )
+    assert schema_response.status_code == 200
+    assert schema_response.json()["custom_fields"] == [
+        {
+            "key": "山门",
+            "position": 0
+        }
+    ]
+
+    third = create_card(
+        client,
+        "sect",
+        "玄月宗",
+        "organization/sect.svg"
+    )
+    assert third["custom_fields"] == [
+        {
+            "key": "山门",
+            "value": ""
+        }
+    ]
+
+    stats_response = client.get(
+        "/api/stats",
+        params={"operation_limit": 10}
+    )
+    latest_update = next(
+        operation
+        for operation in stats_response.json()["operations"]["recent"]
+        if operation["action"] == "update"
+    )
+    assert {
+        "field": "自定义字段「山门」",
+        "before": None,
+        "after": "东域"
+    } in latest_update["details"]["changes"]
+
+    clear_response = client.patch(
+        f"/api/cards/{first['id']}",
+        json={
+            "custom_fields": [
+                {
+                    "key": "山门",
+                    "value": ""
+                }
+            ]
+        }
+    )
+    assert clear_response.status_code == 200
+    assert clear_response.json()["custom_fields"] == [
+        {
+            "key": "山门",
+            "value": ""
+        }
+    ]
+    assert client.get(
+        "/api/card-types/sect/schema"
+    ).json()["custom_fields"] == [
+        {
+            "key": "山门",
+            "position": 0
+        }
+    ]
+
+    delete_response = client.patch(
+        f"/api/cards/{first['id']}",
+        json={
+            "custom_fields": [],
+            "removed_field_keys": [
+                "山门"
+            ]
+        }
+    )
+    assert delete_response.status_code == 200
+    assert delete_response.json()["custom_fields"] == []
+    assert client.get(
+        "/api/card-types/sect/schema"
+    ).json()["custom_fields"] == []
+    for card_id in [
+        second["id"],
+        third["id"]
+    ]:
+        assert client.get(
+            f"/api/cards/{card_id}"
+        ).json()["custom_fields"] == []
+
+
+def test_custom_relation_schema_is_shared_by_category(
+    client: TestClient
+) -> None:
+    """
+    @brief Verify custom relationship labels become category schema slots
+    """
+
+    item = create_card(
+        client,
+        "item",
+        "青锋剑",
+        "item/weapon.svg"
+    )
+    first = create_card(
+        client,
+        "character",
+        "林昭",
+        "character/player.svg"
+    )
+    create_card(
+        client,
+        "character",
+        "顾青",
+        "character/player.svg"
+    )
+    update_response = client.patch(
+        f"/api/cards/{first['id']}",
+        json={
+            "relations": [
+                {
+                    "target_card_id": item["id"],
+                    "target_type": "item",
+                    "label": "本命法器",
+                    "inverse_label": "祭炼者"
+                }
+            ]
+        }
+    )
+    assert update_response.status_code == 200
+
+    schema_response = client.get(
+        "/api/card-types/character/schema"
+    )
+    assert schema_response.status_code == 200
+    assert schema_response.json()["custom_relations"] == [
+        {
+            "forward_label": "本命法器",
+            "inverse_label": "祭炼者",
+            "position": 0
+        }
+    ]
+
+    stats_response = client.get(
+        "/api/stats",
+        params={"operation_limit": 10}
+    )
+    relation_change = stats_response.json()["operations"]["recent"][0]["details"]["changes"][0]
+    assert relation_change == {
+        "field": "关联「本命法器」",
+        "before": "未关联",
+        "after": "青锋剑"
+    }
+
+    clear_response = client.patch(
+        f"/api/cards/{first['id']}",
+        json={"relations": []}
+    )
+    assert clear_response.status_code == 200
+    assert clear_response.json()["relations"] == []
+    assert client.get(
+        "/api/card-types/character/schema"
+    ).json()["custom_relations"] == [
+        {
+            "forward_label": "本命法器",
+            "inverse_label": "祭炼者",
+            "position": 0
+        }
+    ]
+
+    delete_response = client.patch(
+        f"/api/cards/{first['id']}",
+        json={
+            "relations": [],
+            "removed_custom_relations": [
+                {
+                    "forward_label": "本命法器",
+                    "inverse_label": "祭炼者"
+                }
+            ]
+        }
+    )
+    assert delete_response.status_code == 200
+    assert client.get(
+        "/api/card-types/character/schema"
+    ).json()["custom_relations"] == []

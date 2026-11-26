@@ -178,6 +178,10 @@ class VisitEvent(Base):
         String(64),
         nullable=False
     )
+    ip_address: Mapped[str | None] = mapped_column(
+        String(45),
+        nullable=True
+    )
     card_type: Mapped[str] = mapped_column(
         String(32),
         nullable=False
