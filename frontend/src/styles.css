@@ -244,13 +244,14 @@ h4
     width: 100%;
     padding: 0 clamp(18px, 2.5vw, 46px) 9px;
     align-items: stretch;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 780px) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) auto;
+    --other-nav-offset: 98px;
 }
 
 
 .object-nav-balance
 {
-    min-width: 0;
+    display: none;
 }
 
 
@@ -258,9 +259,11 @@ h4
 {
     display: flex;
     min-width: 0;
+    padding-left: var(--other-nav-offset);
     gap: 5px;
     align-items: stretch;
-    justify-content: center;
+    justify-content: safe center;
+    overscroll-behavior-inline: contain;
     overflow-x: auto;
     scrollbar-color: rgba(121, 91, 59, 0.3) transparent;
     scrollbar-width: thin;
@@ -2206,6 +2209,7 @@ button:disabled
         padding-right: 18px;
         padding-left: 18px;
         grid-template-columns: minmax(0, 1fr) auto;
+        --other-nav-offset: 0px;
     }
 
     .object-nav-balance
@@ -2215,6 +2219,7 @@ button:disabled
 
     .object-nav-primary
     {
+        padding-left: 0;
         justify-content: flex-start;
     }
 

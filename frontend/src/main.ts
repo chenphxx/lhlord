@@ -3129,6 +3129,45 @@ function handleNavDrop(event: DragEvent): void
 }
 
 
+function handleObjectNavWheel(event: WheelEvent): void
+{
+    const target = event.target;
+    if (!(target instanceof Element))
+    {
+        return;
+    }
+    const nav = target.closest<HTMLElement>(".object-nav-primary");
+    if (!nav)
+    {
+        return;
+    }
+
+    const maximumScroll = nav.scrollWidth - nav.clientWidth;
+    if (maximumScroll <= 0)
+    {
+        return;
+    }
+
+    const delta = Math.abs(event.deltaX) > Math.abs(event.deltaY)
+        ? event.deltaX
+        : event.deltaY;
+    if (!delta)
+    {
+        return;
+    }
+
+    const previousScroll = nav.scrollLeft;
+    nav.scrollLeft = Math.max(
+        0,
+        Math.min(maximumScroll, previousScroll + delta)
+    );
+    if (nav.scrollLeft !== previousScroll)
+    {
+        event.preventDefault();
+    }
+}
+
+
 async function handleAppClick(event: MouseEvent): Promise<void>
 {
     const target = event.target;
@@ -3227,6 +3266,11 @@ app.addEventListener("dragstart", handleNavDragStart);
 app.addEventListener("dragend", handleNavDragEnd);
 app.addEventListener("dragover", handleNavDragOver);
 app.addEventListener("drop", handleNavDrop);
+app.addEventListener(
+    "wheel",
+    handleObjectNavWheel,
+    { passive: false }
+);
 document.addEventListener("click", (event) => {
     if
     (
