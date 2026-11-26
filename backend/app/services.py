@@ -7,6 +7,7 @@ from fastapi import HTTPException, status
 from sqlalchemy import delete, or_, select
 from sqlalchemy.orm import Session, joinedload, selectinload
 
+from app.analytics import record_operation
 from app.catalog import get_entity_type, get_relation_preset
 from app.models import Card, CardRelation
 from app.schemas import (
@@ -502,6 +503,21 @@ def create_card(
             source_card=card,
             relation_inputs=payload.relations
         )
+        entity_type = get_entity_type(card.card_type)
+        record_operation(
+            session=session,
+            action="create",
+            entity_type=card.card_type,
+            entity_id=card.id,
+            summary=(
+                f"新建{entity_type.name}「{card.name}」"
+                if entity_type
+                else f"新建对象「{card.name}」"
+            ),
+            details={
+                "relation_count": len(payload.relations)
+            }
+        )
         session.commit()
         session.expire_all()
     except Exception:
@@ -567,6 +583,32 @@ def update_card(
                 relation_inputs=payload.relations
             )
 
+        entity_type = get_entity_type(card.card_type)
+        changed_sections = [
+            field_name
+            for field_name in (
+                "name",
+                "icon",
+                "summary",
+                "custom_fields",
+                "relations"
+            )
+            if getattr(payload, field_name) is not None
+        ]
+        record_operation(
+            session=session,
+            action="update",
+            entity_type=card.card_type,
+            entity_id=card.id,
+            summary=(
+                f"更新{entity_type.name}「{card.name}」"
+                if entity_type
+                else f"更新对象「{card.name}」"
+            ),
+            details={
+                "changed_sections": changed_sections
+            }
+        )
         session.commit()
         session.expire_all()
     except Exception:
@@ -591,15 +633,17 @@ def delete_card(
     @return None
     """
 
-    card_exists = session.scalar(
-        select(Card.id).where(Card.id == card_id)
-    )
-    if card_exists is None:
+    card_row = session.execute(
+        select(Card.card_type, Card.name).where(Card.id == card_id)
+    ).first()
+    if card_row is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="对象卡片不存在"
         )
 
+    card_type, card_name = card_row
+    entity_type = get_entity_type(card_type)
     try:
         session.execute(
             delete(CardRelation).where(
@@ -611,6 +655,17 @@ def delete_card(
         )
         session.execute(
             delete(Card).where(Card.id == card_id)
+        )
+        record_operation(
+            session=session,
+            action="delete",
+            entity_type=card_type,
+            entity_id=card_id,
+            summary=(
+                f"删除{entity_type.name}「{card_name}」"
+                if entity_type
+                else f"删除对象「{card_name}」"
+            )
         )
         session.commit()
     except Exception:

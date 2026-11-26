@@ -441,7 +441,8 @@ def test_export_and_import_archive_round_trip(
         assert set(archive.namelist()) == {
             "manifest.json",
             "cards.json",
-            "ui-settings.json"
+            "ui-settings.json",
+            "analytics.json"
         }
         cards_document = json.loads(archive.read("cards.json"))
         assert len(cards_document["cards"]) == 3
@@ -508,3 +509,68 @@ def test_invalid_archive_does_not_change_existing_data(
         params={"type": "sect"}
     )
     assert len(sect_response.json()["items"]) == 1
+
+
+def test_visitor_and_operation_statistics(
+    client: TestClient
+) -> None:
+    """
+    @brief Verify unique visitors and mutation logs are aggregated
+    """
+
+    first_visitor = "visitor-alpha-01"
+    second_visitor = "visitor-bravo-02"
+
+    for visitor_id in [
+        first_visitor,
+        first_visitor,
+        second_visitor
+    ]:
+        response = client.post(
+            "/api/visits",
+            json={
+                "visitor_id": visitor_id,
+                "card_type": "sect"
+            }
+        )
+        assert response.status_code == 200
+
+    visitor_stats = response.json()
+    assert visitor_stats["total_visitors"] == 2
+    assert visitor_stats["today_visitors"] == 2
+    assert visitor_stats["total_views"] == 3
+    assert visitor_stats["today_views"] == 3
+    assert len(visitor_stats["daily"]) == 7
+
+    card = create_card(
+        client,
+        "sect",
+        "青云宗",
+        "organization/sect.svg"
+    )
+    update_response = client.patch(
+        f"/api/cards/{card['id']}",
+        json={"name": "青云仙宗"}
+    )
+    assert update_response.status_code == 200
+    delete_response = client.delete(
+        f"/api/cards/{card['id']}"
+    )
+    assert delete_response.status_code == 204
+
+    stats_response = client.get(
+        "/api/stats",
+        params={"operation_limit": 10}
+    )
+    assert stats_response.status_code == 200
+    stats = stats_response.json()
+    assert stats["operations"]["total"] == 3
+    assert stats["operations"]["today"] == 3
+    assert [
+        operation["action"]
+        for operation in stats["operations"]["recent"]
+    ] == [
+        "delete",
+        "update",
+        "create"
+    ]

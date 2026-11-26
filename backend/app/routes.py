@@ -6,6 +6,14 @@ from fastapi import APIRouter, Depends, Query, Request, Response, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.analytics import (
+    StatsSummary,
+    VisitRequest,
+    VisitorStats,
+    record_operation,
+    record_visit,
+    stats_summary
+)
 from app.archive import (
     ArchiveExportRequest,
     ArchiveImportResult,
@@ -51,6 +59,46 @@ def get_catalog() -> dict[str, object]:
     """
 
     return catalog_payload()
+
+
+@router.post(
+    "/visits",
+    response_model=VisitorStats
+)
+def create_visit(
+    payload: VisitRequest,
+    session: Session = Depends(get_db)
+) -> VisitorStats:
+    """
+    @brief Record one anonymous category view
+
+    @return Updated visitor statistics
+    """
+
+    return record_visit(
+        session=session,
+        payload=payload
+    )
+
+
+@router.get(
+    "/stats",
+    response_model=StatsSummary
+)
+def get_stats(
+    operation_limit: int = Query(default=30, ge=1, le=100),
+    session: Session = Depends(get_db)
+) -> StatsSummary:
+    """
+    @brief Return current visitor and operation statistics
+
+    @return Combined statistics
+    """
+
+    return stats_summary(
+        session=session,
+        recent_limit=operation_limit
+    )
 
 
 @router.get(
@@ -176,6 +224,15 @@ def export_catalog(
         session=session,
         nav_layout=payload.nav_layout
     )
+    record_operation(
+        session=session,
+        action="export",
+        summary="导出全部对象数据",
+        details={
+            "filename": filename
+        }
+    )
+    session.commit()
     return Response(
         content=archive_bytes,
         media_type="application/zip",

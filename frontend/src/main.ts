@@ -5,7 +5,9 @@ import {
     exportCatalog,
     getCards,
     getCatalog,
+    getStats,
     importCatalog,
+    recordVisit,
     updateCard
 } from "./api";
 import type {
@@ -16,9 +18,11 @@ import type {
     CustomField,
     EntityTypeDefinition,
     LinkedCardDraft,
+    OperationLogEntry,
     RelatedCard,
     RelationInput,
-    RelationPreset
+    RelationPreset,
+    StatsSummary
 } from "./types";
 import "./styles.css";
 
@@ -94,6 +98,12 @@ let draggedNavTypeId: string | null = null;
 let navDropPlan: NavDropPlan | null = null;
 let suppressNavClick = false;
 let dataTransferBusy: "export" | "import" | null = null;
+let statsSummary: StatsSummary | null = null;
+let statsPanelView: "visitors" | "operations" | null = null;
+let statsLayer: HTMLDivElement | null = null;
+let statsLoading = false;
+let statsRequestSequence = 0;
+let statsError = "";
 
 const primaryNavTypeIds = [
     "sect",
@@ -108,6 +118,7 @@ const primaryNavTypeIds = [
 ];
 
 const navLayoutStorageKey = "lhlord.nav-layout.v1";
+const visitorStorageKey = "lhlord.visitor-id.v1";
 
 
 function escapeHtml(value: string): string
@@ -857,6 +868,32 @@ function renderApp(): void
                 </a>
                 <div class="brand-tools">
                     <p class="topbar-note">万物有灵 · 因缘可循</p>
+                    <div class="header-stats" aria-label="统计信息">
+                        <button
+                            class="stat-action"
+                            type="button"
+                            data-action="open-stats"
+                            data-stats-view="visitors"
+                            aria-label="查看访客统计"
+                            title="查看访客统计"
+                        >
+                            <span class="stat-mark" aria-hidden="true">访</span>
+                            <span class="stat-label">访客</span>
+                            <strong id="visitor-total-stat">${statsSummary?.visitors.total_visitors ?? "—"}</strong>
+                        </button>
+                        <button
+                            class="stat-action"
+                            type="button"
+                            data-action="open-stats"
+                            data-stats-view="operations"
+                            aria-label="查看操作日志统计"
+                            title="查看操作日志统计"
+                        >
+                            <span class="stat-mark" aria-hidden="true">志</span>
+                            <span class="stat-label">日志</span>
+                            <strong id="operation-total-stat">${statsSummary?.operations.total ?? "—"}</strong>
+                        </button>
+                    </div>
                     <div class="data-actions" aria-label="数据导入导出">
                         <button
                             class="data-action-button"
@@ -866,7 +903,7 @@ function renderApp(): void
                             ${dataTransferBusy ? "disabled" : ""}
                         >
                             <span aria-hidden="true">↓</span>
-                            ${dataTransferBusy === "export" ? "导出中" : "导出"}
+                            <span class="action-label">${dataTransferBusy === "export" ? "导出中" : "导出"}</span>
                         </button>
                         <button
                             class="data-action-button"
@@ -876,7 +913,7 @@ function renderApp(): void
                             ${dataTransferBusy ? "disabled" : ""}
                         >
                             <span aria-hidden="true">↑</span>
-                            ${dataTransferBusy === "import" ? "导入中" : "导入"}
+                            <span class="action-label">${dataTransferBusy === "import" ? "导入中" : "导入"}</span>
                         </button>
                         <input
                             id="import-archive"
@@ -969,6 +1006,394 @@ function categoryDescription(typeId: string): string
 }
 
 
+function visitorId(): string
+{
+    try
+    {
+        const existing = window.localStorage.getItem(visitorStorageKey);
+        if (existing)
+        {
+            return existing;
+        }
+        const created = typeof crypto.randomUUID === "function"
+            ? crypto.randomUUID()
+            : `visitor-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+        window.localStorage.setItem(visitorStorageKey, created);
+        return created;
+    }
+    catch
+    {
+        return `visitor-${Date.now()}`;
+    }
+}
+
+
+function updateStatsIndicators(): void
+{
+    const visitorBadge = document.querySelector<HTMLElement>(
+        "#visitor-total-stat"
+    );
+    const operationBadge = document.querySelector<HTMLElement>(
+        "#operation-total-stat"
+    );
+    if (visitorBadge)
+    {
+        visitorBadge.textContent = statsSummary
+            ? String(statsSummary.visitors.total_visitors)
+            : "—";
+    }
+    if (operationBadge)
+    {
+        operationBadge.textContent = statsSummary
+            ? String(statsSummary.operations.total)
+            : "—";
+    }
+}
+
+
+async function refreshStats(): Promise<void>
+{
+    const sequence = ++statsRequestSequence;
+    statsLoading = true;
+    statsError = "";
+    renderStatsPanel();
+    try
+    {
+        const summary = await getStats();
+        if (sequence !== statsRequestSequence)
+        {
+            return;
+        }
+        statsSummary = summary;
+        updateStatsIndicators();
+    }
+    catch (error)
+    {
+        if (sequence !== statsRequestSequence)
+        {
+            return;
+        }
+        statsError = errorMessage(error);
+    }
+    finally
+    {
+        if (sequence === statsRequestSequence)
+        {
+            statsLoading = false;
+            renderStatsPanel();
+        }
+    }
+}
+
+
+async function recordCurrentVisit(): Promise<void>
+{
+    if (!catalog)
+    {
+        return;
+    }
+    try
+    {
+        const visitors = await recordVisit(
+            visitorId(),
+            currentTypeId
+        );
+        if (statsSummary)
+        {
+            statsSummary = {
+                ...statsSummary,
+                visitors
+            };
+            updateStatsIndicators();
+            renderStatsPanel();
+        }
+        else
+        {
+            await refreshStats();
+        }
+    }
+    catch
+    {
+        // Statistics failures must not block the catalog.
+    }
+}
+
+
+function formatOperationTime(value: string): string
+{
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime()))
+    {
+        return value;
+    }
+    return new Intl.DateTimeFormat(
+        "zh-CN",
+        {
+            timeZone: "Asia/Shanghai",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false
+        }
+    ).format(parsed);
+}
+
+
+function operationLabel(action: string): string
+{
+    const labels: Record<string, string> = {
+        create: "新建",
+        update: "编辑",
+        delete: "删除",
+        import: "导入",
+        export: "导出"
+    };
+    return labels[action] ?? action;
+}
+
+
+function entityTypeLabel(typeId: string): string
+{
+    return catalog?.types.find((item) => item.id === typeId)?.name ?? typeId;
+}
+
+
+function renderVisitorStatsBody(): string
+{
+    if (!statsSummary)
+    {
+        return statsLoading
+            ? `<div class="stats-loading">正在整理访客足迹……</div>`
+            : `<div class="stats-error">${escapeHtml(statsError || "暂无访客数据")}</div>`;
+    }
+
+    const visitors = statsSummary.visitors;
+    const maximumViews = Math.max(
+        1,
+        ...visitors.daily.map((day) => day.views)
+    );
+    return `
+        <div class="stats-summary-grid">
+            ${renderStatsMetric("累计访客", visitors.total_visitors)}
+            ${renderStatsMetric("今日访客", visitors.today_visitors)}
+            ${renderStatsMetric("累计浏览", visitors.total_views)}
+            ${renderStatsMetric("今日浏览", visitors.today_views)}
+        </div>
+        <section class="stats-section">
+            <h3>近七日访问</h3>
+            <div class="visitor-bars">
+                ${visitors.daily
+                    .map(
+                        (day) => `
+                            <div class="visitor-bar-column" title="${escapeHtml(day.day)}：${day.views} 次浏览，${day.visitors} 位访客">
+                                <span class="visitor-bar-value">${day.views}</span>
+                                <span class="visitor-bar-track">
+                                    <span
+                                        class="visitor-bar-fill"
+                                        style="height: ${Math.max(4, Math.round(day.views / maximumViews * 100))}%"
+                                    ></span>
+                                </span>
+                                <span class="visitor-bar-label">${escapeHtml(day.day.slice(5))}</span>
+                            </div>
+                        `
+                    )
+                    .join("")}
+            </div>
+        </section>
+        <section class="stats-section">
+            <h3>分类浏览</h3>
+            ${visitors.pages.length
+                ? `
+                    <div class="page-stat-list">
+                        ${visitors.pages
+                            .slice(0, 12)
+                            .map(
+                                (page) => `
+                                    <div class="page-stat-row">
+                                        <span>${escapeHtml(entityTypeLabel(page.card_type))}</span>
+                                        <span>${page.visitors} 位访客</span>
+                                        <strong>${page.views} 次</strong>
+                                    </div>
+                                `
+                            )
+                            .join("")}
+                    </div>
+                `
+                : `<p class="stats-empty">尚未记录分类浏览</p>`}
+        </section>
+    `;
+}
+
+
+function renderStatsMetric(label: string, value: number): string
+{
+    return `
+        <div class="stats-metric">
+            <span>${escapeHtml(label)}</span>
+            <strong>${value}</strong>
+        </div>
+    `;
+}
+
+
+function renderOperationStatsBody(): string
+{
+    if (!statsSummary)
+    {
+        return statsLoading
+            ? `<div class="stats-loading">正在翻阅操作记录……</div>`
+            : `<div class="stats-error">${escapeHtml(statsError || "暂无操作日志")}</div>`;
+    }
+
+    const operations = statsSummary.operations;
+    return `
+        <div class="stats-summary-grid stats-summary-grid--operations">
+            ${renderStatsMetric("累计操作", operations.total)}
+            ${renderStatsMetric("今日操作", operations.today)}
+        </div>
+        <section class="stats-section">
+            <h3>操作构成</h3>
+            <div class="operation-action-list">
+                ${operations.actions.length
+                    ? operations.actions
+                        .map(
+                            (item) => `
+                                <span class="operation-action-chip">
+                                    ${escapeHtml(operationLabel(item.action))}
+                                    <strong>${item.count}</strong>
+                                </span>
+                            `
+                        )
+                        .join("")
+                    : `<span class="stats-empty">暂无操作</span>`}
+            </div>
+        </section>
+        <section class="stats-section">
+            <h3>最近记录</h3>
+            <div class="operation-log-list">
+                ${operations.recent.length
+                    ? operations.recent
+                        .map((entry) => renderOperationLog(entry))
+                        .join("")
+                    : `<p class="stats-empty">尚未记录任何操作</p>`}
+            </div>
+        </section>
+    `;
+}
+
+
+function renderOperationLog(entry: OperationLogEntry): string
+{
+    return `
+        <article class="operation-log-row">
+            <span class="operation-badge operation-badge--${escapeHtml(entry.action)}">
+                ${escapeHtml(operationLabel(entry.action))}
+            </span>
+            <div>
+                <p>${escapeHtml(entry.summary)}</p>
+                <time>${escapeHtml(formatOperationTime(entry.created_at))}</time>
+            </div>
+        </article>
+    `;
+}
+
+
+function renderStatsPanel(): void
+{
+    if (!statsLayer || !statsPanelView)
+    {
+        return;
+    }
+    const title = statsPanelView === "visitors"
+        ? "访客统计"
+        : "操作日志统计";
+    const body = statsPanelView === "visitors"
+        ? renderVisitorStatsBody()
+        : renderOperationStatsBody();
+
+    statsLayer.innerHTML = `
+        <div class="stats-backdrop">
+            <section
+                class="stats-modal"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="stats-title"
+            >
+                <header class="stats-header">
+                    <div>
+                        <p class="eyebrow">CATALOG INSIGHTS</p>
+                        <h2 id="stats-title">${title}</h2>
+                    </div>
+                    <button
+                        class="modal-close"
+                        type="button"
+                        data-action="close-stats"
+                        aria-label="关闭${title}"
+                    >×</button>
+                </header>
+                <div class="stats-body">
+                    ${body}
+                </div>
+            </section>
+        </div>
+    `;
+}
+
+
+function openStatsPanel(view: "visitors" | "operations"): void
+{
+    statsPanelView = view;
+    if (!statsLayer)
+    {
+        statsLayer = document.createElement("div");
+        statsLayer.className = "stats-layer";
+        statsLayer.addEventListener("click", handleStatsClick);
+        document.body.append(statsLayer);
+    }
+    document.body.classList.add("has-modal");
+    renderStatsPanel();
+    void refreshStats();
+    window.requestAnimationFrame(
+        () =>
+        {
+            statsLayer
+                ?.querySelector<HTMLButtonElement>("[data-action=\"close-stats\"]")
+                ?.focus();
+        }
+    );
+}
+
+
+function closeStatsPanel(): void
+{
+    statsLayer?.remove();
+    statsLayer = null;
+    statsPanelView = null;
+    statsLoading = false;
+    document.body.classList.remove("has-modal");
+}
+
+
+function handleStatsClick(event: MouseEvent): void
+{
+    const target = event.target;
+    if (!(target instanceof Element))
+    {
+        return;
+    }
+    if (target.closest("[data-action=\"close-stats\"]"))
+    {
+        closeStatsPanel();
+        return;
+    }
+    if (target.classList.contains("stats-backdrop"))
+    {
+        closeStatsPanel();
+    }
+}
+
+
 async function boot(): Promise<void>
 {
     loadingCards = true;
@@ -983,6 +1408,11 @@ async function boot(): Promise<void>
         updateHash(currentTypeId);
         renderApp();
         await loadCurrentCards();
+        void (async () =>
+        {
+            await refreshStats();
+            await recordCurrentVisit();
+        })();
     }
     catch (error)
     {
@@ -1076,6 +1506,7 @@ async function selectType(typeId: string): Promise<void>
     currentCards = [];
     updateHash(typeId);
     await loadCurrentCards();
+    void recordCurrentVisit();
 }
 
 
@@ -1094,6 +1525,7 @@ async function navigateToRelated(
     currentCards = [];
     updateHash(typeId);
     await loadCurrentCards();
+    void recordCurrentVisit();
 }
 
 
@@ -2724,6 +3156,7 @@ async function saveEditor(): Promise<void>
         }
         closeEditor();
         await loadCurrentCards();
+        void refreshStats();
     }
     catch (error)
     {
@@ -2765,6 +3198,7 @@ async function deleteActiveCard(): Promise<void>
         closeEditor();
         showToast("卡片及其关联已移除", "success");
         await loadCurrentCards();
+        void refreshStats();
     }
     catch (error)
     {
@@ -3250,6 +3684,7 @@ async function exportAppData(): Promise<void>
         const blob = await exportCatalog(getNavLayout());
         downloadArchive(blob);
         showToast("全部数据已导出为 ZIP 压缩包", "success");
+        void refreshStats();
     }
     catch (error)
     {
@@ -3298,6 +3733,7 @@ async function importArchiveFile(file: File): Promise<void>
         );
         dataTransferBusy = null;
         await loadCurrentCards();
+        void refreshStats();
     }
     catch (error)
     {
@@ -3341,6 +3777,15 @@ async function handleAppClick(event: MouseEvent): Promise<void>
     if (action === "retry-load")
     {
         await loadCurrentCards();
+        return;
+    }
+    if (action === "open-stats")
+    {
+        const view = actionElement.dataset.statsView;
+        if (view === "visitors" || view === "operations")
+        {
+            openStatsPanel(view);
+        }
         return;
     }
     if (action === "export-data")
@@ -3459,7 +3904,17 @@ document.addEventListener("click", (event) => {
     }
 });
 document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && otherMenuOpen)
+    if (event.key !== "Escape")
+    {
+        return;
+    }
+    if (statsPanelView)
+    {
+        event.preventDefault();
+        closeStatsPanel();
+        return;
+    }
+    if (otherMenuOpen)
     {
         event.preventDefault();
         setOtherMenuOpen(false, true);

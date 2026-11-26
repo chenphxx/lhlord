@@ -12,8 +12,9 @@ from pydantic import BaseModel, Field, ValidationError
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session, joinedload, selectinload
 
+from app.analytics import record_operation
 from app.catalog import get_entity_type, get_relation_preset
-from app.models import Card, CardRelation
+from app.models import Card, CardRelation, OperationLog, VisitEvent
 from app.schemas import CustomField
 
 
@@ -88,6 +89,37 @@ class UiSettingsDocument(BaseModel):
     nav_layout: NavLayoutPayload | None = None
 
 
+class ImportVisit(BaseModel):
+    """One anonymous visitor event stored in an archive."""
+
+    id: UUID
+    visitor_id: str = Field(min_length=8, max_length=64)
+    card_type: str = Field(min_length=1, max_length=32)
+    visited_at: datetime
+
+
+class ImportOperationLog(BaseModel):
+    """One operation log stored in an archive."""
+
+    id: UUID
+    action: str = Field(min_length=1, max_length=32)
+    entity_type: str | None = Field(default=None, max_length=32)
+    entity_id: UUID | None = None
+    summary: str = Field(min_length=1, max_length=500)
+    details: dict[str, object] = Field(default_factory=dict)
+    created_at: datetime
+
+
+class AnalyticsDocument(BaseModel):
+    """Visitor and operation records stored in an archive."""
+
+    visits: list[ImportVisit] = Field(default_factory=list, max_length=50000)
+    operations: list[ImportOperationLog] = Field(
+        default_factory=list,
+        max_length=50000
+    )
+
+
 class ArchiveImportResult(BaseModel):
     """Summary returned after an archive is imported."""
 
@@ -102,6 +134,7 @@ class ParsedArchive(BaseModel):
     manifest: ArchiveManifest
     cards: list[ImportCard]
     nav_layout: NavLayoutPayload | None
+    analytics: AnalyticsDocument
 
 
 def _utc_now() -> datetime:
@@ -154,6 +187,12 @@ def export_archive(
         len(card.outgoing_relations)
         for card in cards
     )
+    visit_events = session.scalars(
+        select(VisitEvent).order_by(VisitEvent.visited_at.asc())
+    ).all()
+    operation_logs = session.scalars(
+        select(OperationLog).order_by(OperationLog.created_at.asc())
+    ).all()
     exported_at = _utc_now()
     manifest = ArchiveManifest(
         format=ARCHIVE_FORMAT,
@@ -190,6 +229,33 @@ def export_archive(
             for card in cards
         ]
     }
+    analytics_document = {
+        "visits": [
+            {
+                "id": str(event.id),
+                "visitor_id": event.visitor_id,
+                "card_type": event.card_type,
+                "visited_at": event.visited_at
+            }
+            for event in visit_events
+        ],
+        "operations": [
+            {
+                "id": str(log.id),
+                "action": log.action,
+                "entity_type": log.entity_type,
+                "entity_id": (
+                    str(log.entity_id)
+                    if log.entity_id
+                    else None
+                ),
+                "summary": log.summary,
+                "details": log.details,
+                "created_at": log.created_at
+            }
+            for log in operation_logs
+        ]
+    }
 
     buffer = BytesIO()
     with zipfile.ZipFile(
@@ -205,6 +271,10 @@ def export_archive(
         archive.writestr(
             "cards.json",
             _json_bytes(cards_document)
+        )
+        archive.writestr(
+            "analytics.json",
+            _json_bytes(analytics_document)
         )
         if nav_layout is not None:
             archive.writestr(
@@ -287,6 +357,11 @@ def parse_archive(archive_bytes: bytes) -> ParsedArchive:
                     _read_archive_member(archive, "ui-settings.json")
                 )
                 nav_layout = ui_settings.nav_layout
+            analytics = AnalyticsDocument()
+            if "analytics.json" in archive.namelist():
+                analytics = AnalyticsDocument.model_validate_json(
+                    _read_archive_member(archive, "analytics.json")
+                )
     except HTTPException:
         raise
     except zipfile.BadZipFile as error:
@@ -303,7 +378,8 @@ def parse_archive(archive_bytes: bytes) -> ParsedArchive:
     return ParsedArchive(
         manifest=manifest,
         cards=cards_document.cards,
-        nav_layout=nav_layout
+        nav_layout=nav_layout,
+        analytics=analytics
     )
 
 
@@ -419,6 +495,74 @@ def _validate_archive_cards(parsed: ParsedArchive) -> None:
         )
 
 
+def _validate_analytics(parsed: ParsedArchive) -> None:
+    """
+    @brief Validate imported visitor and operation records
+
+    @return None
+    """
+
+    visit_ids: set[UUID] = set()
+    for visit in parsed.analytics.visits:
+        if visit.id in visit_ids:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                detail="压缩包中存在重复的访客记录 ID"
+            )
+        visit_ids.add(visit.id)
+        if get_entity_type(visit.card_type) is None:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                detail="压缩包中的访客记录包含未知对象类型"
+            )
+        if not visit.visitor_id.strip():
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                detail="压缩包中存在无效访客标识"
+            )
+
+    operation_ids: set[UUID] = set()
+    allowed_actions = {
+        "create",
+        "update",
+        "delete",
+        "import",
+        "export"
+    }
+    for operation in parsed.analytics.operations:
+        if operation.id in operation_ids:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                detail="压缩包中存在重复的操作日志 ID"
+            )
+        operation_ids.add(operation.id)
+        if operation.action not in allowed_actions:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                detail="压缩包中存在未知操作类型"
+            )
+        if (
+            operation.entity_type
+            and get_entity_type(operation.entity_type) is None
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                detail="压缩包中的操作日志包含未知对象类型"
+            )
+
+
+def _as_utc(value: datetime) -> datetime:
+    """
+    @brief Normalize imported timestamps to timezone-aware UTC
+
+    @return UTC datetime
+    """
+
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)
+
+
 def import_archive(
     session: Session,
     archive_bytes: bytes
@@ -431,10 +575,13 @@ def import_archive(
 
     parsed = parse_archive(archive_bytes)
     _validate_archive_cards(parsed)
+    _validate_analytics(parsed)
 
     try:
         session.execute(delete(CardRelation))
         session.execute(delete(Card))
+        session.execute(delete(VisitEvent))
+        session.execute(delete(OperationLog))
         session.flush()
 
         imported_cards = [
@@ -479,6 +626,43 @@ def import_archive(
             for relation in card.outgoing_relations
         ]
         session.add_all(imported_relations)
+
+        imported_visits = [
+            VisitEvent(
+                id=visit.id,
+                visitor_id=visit.visitor_id.strip(),
+                card_type=visit.card_type,
+                visited_at=_as_utc(visit.visited_at)
+            )
+            for visit in parsed.analytics.visits
+        ]
+        imported_operations = [
+            OperationLog(
+                id=operation.id,
+                action=operation.action,
+                entity_type=operation.entity_type,
+                entity_id=operation.entity_id,
+                summary=operation.summary,
+                details=operation.details,
+                created_at=_as_utc(operation.created_at)
+            )
+            for operation in parsed.analytics.operations
+        ]
+        session.add_all(imported_visits)
+        session.add_all(imported_operations)
+        record_operation(
+            session=session,
+            action="import",
+            summary=(
+                f"导入全部对象数据，共 {len(imported_cards)} 张卡片"
+            ),
+            details={
+                "cards": len(imported_cards),
+                "relations": len(imported_relations),
+                "visits": len(imported_visits),
+                "operation_logs": len(imported_operations)
+            }
+        )
         session.commit()
     except Exception:
         session.rollback()

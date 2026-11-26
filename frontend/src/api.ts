@@ -1,7 +1,9 @@
 import type {
     Card,
     CardWritePayload,
-    Catalog
+    Catalog,
+    StatsSummary,
+    VisitorStats
 } from "./types";
 
 
@@ -219,6 +221,38 @@ export async function importCatalog
 export async function getCatalog(): Promise<Catalog>
 {
     return request<Catalog>("/api/catalog");
+}
+
+
+export async function getStats
+(
+    operationLimit = 30
+): Promise<StatsSummary>
+{
+    return request<StatsSummary>(
+        `/api/stats?operation_limit=${operationLimit}`
+    );
+}
+
+
+export async function recordVisit
+(
+    visitorId: string,
+    cardType: string
+): Promise<VisitorStats>
+{
+    return request<VisitorStats>(
+        "/api/visits",
+        {
+            method: "POST",
+            body: JSON.stringify(
+                {
+                    visitor_id: visitorId,
+                    card_type: cardType
+                }
+            )
+        }
+    );
 }
 
 

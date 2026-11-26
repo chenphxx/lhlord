@@ -157,3 +157,77 @@ class CardRelation(Base):
         foreign_keys=[target_card_id],
         back_populates="incoming_relations"
     )
+
+
+class VisitEvent(Base):
+    """An anonymous page view made by a browser visitor."""
+
+    __tablename__ = "visit_events"
+    __table_args__ = (
+        Index("ix_visit_events_visited_at", "visited_at"),
+        Index("ix_visit_events_visitor", "visitor_id"),
+        Index("ix_visit_events_type", "card_type")
+    )
+
+    id: Mapped[UUID] = mapped_column(
+        Uuid(as_uuid=True),
+        primary_key=True,
+        default=uuid4
+    )
+    visitor_id: Mapped[str] = mapped_column(
+        String(64),
+        nullable=False
+    )
+    card_type: Mapped[str] = mapped_column(
+        String(32),
+        nullable=False
+    )
+    visited_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+        server_default=func.now()
+    )
+
+
+class OperationLog(Base):
+    """A record of a user-visible mutation or data-transfer action."""
+
+    __tablename__ = "operation_logs"
+    __table_args__ = (
+        Index("ix_operation_logs_created_at", "created_at"),
+        Index("ix_operation_logs_action", "action")
+    )
+
+    id: Mapped[UUID] = mapped_column(
+        Uuid(as_uuid=True),
+        primary_key=True,
+        default=uuid4
+    )
+    action: Mapped[str] = mapped_column(
+        String(32),
+        nullable=False
+    )
+    entity_type: Mapped[str | None] = mapped_column(
+        String(32),
+        nullable=True
+    )
+    entity_id: Mapped[UUID | None] = mapped_column(
+        Uuid(as_uuid=True),
+        nullable=True
+    )
+    summary: Mapped[str] = mapped_column(
+        Text,
+        nullable=False
+    )
+    details: Mapped[dict[str, object]] = mapped_column(
+        JSON().with_variant(JSONB, "postgresql"),
+        nullable=False,
+        default=dict
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+        server_default=func.now()
+    )

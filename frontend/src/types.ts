@@ -104,3 +104,65 @@ export interface CardWritePayload
     custom_fields?: CustomField[];
     relations?: RelationInput[];
 }
+
+
+export interface DailyVisitStat
+{
+    day: string;
+    visitors: number;
+    views: number;
+}
+
+
+export interface PageVisitStat
+{
+    card_type: string;
+    visitors: number;
+    views: number;
+}
+
+
+export interface VisitorStats
+{
+    total_visitors: number;
+    today_visitors: number;
+    total_views: number;
+    today_views: number;
+    daily: DailyVisitStat[];
+    pages: PageVisitStat[];
+}
+
+
+export interface OperationLogEntry
+{
+    id: string;
+    action: string;
+    entity_type: string | null;
+    entity_id: string | null;
+    summary: string;
+    details: Record<string, unknown>;
+    created_at: string;
+}
+
+
+export interface OperationActionStat
+{
+    action: string;
+    count: number;
+}
+
+
+export interface OperationStats
+{
+    total: number;
+    today: number;
+    actions: OperationActionStat[];
+    recent: OperationLogEntry[];
+}
+
+
+export interface StatsSummary
+{
+    visitors: VisitorStats;
+    operations: OperationStats;
+}
