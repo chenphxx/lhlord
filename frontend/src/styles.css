@@ -1,0 +1,68 @@
+:root
+{
+    font-family: "Noto Serif SC", "Songti SC", "STSong", serif;
+    color: #292421;
+    background: #f2ead8;
+}
+
+
+*
+{
+    box-sizing: border-box;
+}
+
+
+body
+{
+    min-width: 320px;
+    min-height: 100vh;
+    margin: 0;
+    background:
+        radial-gradient(circle at 20% 10%, rgba(201, 155, 74, 0.12), transparent 24rem),
+        linear-gradient(110deg, #f6efdf, #eee3cd);
+}
+
+
+.boot-screen
+{
+    display: flex;
+    min-height: 100vh;
+    padding: 32px;
+    text-align: center;
+    align-items: center;
+    flex-direction: column;
+    justify-content: center;
+}
+
+
+.boot-seal
+{
+    display: grid;
+    width: 76px;
+    height: 76px;
+    margin-bottom: 22px;
+    border-radius: 7px 14px 7px 14px;
+    color: #fff7e4;
+    background: #b64c3e;
+    font-family: "STKaiti", "KaiTi", serif;
+    font-size: 42px;
+    place-items: center;
+}
+
+
+.eyebrow
+{
+    color: #b64c3e;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+}
+
+
+h1
+{
+    margin: 0 0 12px;
+    font-family: "STKaiti", "KaiTi", serif;
+    font-size: 48px;
+    letter-spacing: 0.12em;
+}

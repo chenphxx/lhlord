@@ -1,0 +1,24 @@
+import { defineConfig } from "vite";
+
+
+export default defineConfig
+(
+    {
+        publicDir: "../assets",
+        server: {
+            host: "127.0.0.1",
+            port: 5173,
+            strictPort: true,
+            proxy: {
+                "/api": {
+                    target: "http://127.0.0.1:7100",
+                    changeOrigin: true
+                }
+            }
+        },
+        build: {
+            outDir: "dist",
+            emptyOutDir: true
+        }
+    }
+);

@@ -1,1 +1,11 @@
 temp.md
+.tmp-postgres/
+.playwright-cli/
+output/playwright/
+backend/.env
+backend/.venv/
+backend/.pytest_cache/
+backend/**/__pycache__/
+backend/**/*.py[cod]
+frontend/node_modules/
+frontend/dist/
