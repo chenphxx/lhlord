@@ -14,7 +14,14 @@ from sqlalchemy.orm import Session, joinedload, selectinload
 
 from app.analytics import record_operation
 from app.catalog import get_entity_type, get_relation_preset
-from app.models import Card, CardRelation, OperationLog, VisitEvent
+from app.models import (
+    Card,
+    CardRelation,
+    CustomFieldDefinition,
+    CustomRelationDefinition,
+    OperationLog,
+    VisitEvent
+)
 from app.schemas import CustomField
 
 
@@ -120,6 +127,36 @@ class AnalyticsDocument(BaseModel):
     )
 
 
+class SchemaFieldDefinition(BaseModel):
+    """One category custom-field definition stored in an archive."""
+
+    card_type: str = Field(max_length=32)
+    key: str = Field(min_length=1, max_length=30)
+    position: int = Field(ge=0)
+
+
+class SchemaRelationDefinition(BaseModel):
+    """One category custom-relationship definition stored in an archive."""
+
+    card_type: str = Field(max_length=32)
+    forward_label: str = Field(min_length=1, max_length=32)
+    inverse_label: str = Field(min_length=1, max_length=32)
+    position: int = Field(ge=0)
+
+
+class SchemasDocument(BaseModel):
+    """Category-level custom field and relationship schemas."""
+
+    custom_fields: list[SchemaFieldDefinition] = Field(
+        default_factory=list,
+        max_length=10000
+    )
+    custom_relations: list[SchemaRelationDefinition] = Field(
+        default_factory=list,
+        max_length=10000
+    )
+
+
 class ArchiveImportResult(BaseModel):
     """Summary returned after an archive is imported."""
 
@@ -135,6 +172,7 @@ class ParsedArchive(BaseModel):
     cards: list[ImportCard]
     nav_layout: NavLayoutPayload | None
     analytics: AnalyticsDocument
+    schemas: SchemasDocument
 
 
 def _utc_now() -> datetime:
@@ -192,6 +230,20 @@ def export_archive(
     ).all()
     operation_logs = session.scalars(
         select(OperationLog).order_by(OperationLog.created_at.asc())
+    ).all()
+    field_definitions = session.scalars(
+        select(CustomFieldDefinition)
+        .order_by(
+            CustomFieldDefinition.card_type.asc(),
+            CustomFieldDefinition.position.asc()
+        )
+    ).all()
+    relation_definitions = session.scalars(
+        select(CustomRelationDefinition)
+        .order_by(
+            CustomRelationDefinition.card_type.asc(),
+            CustomRelationDefinition.position.asc()
+        )
     ).all()
     exported_at = _utc_now()
     manifest = ArchiveManifest(
@@ -256,6 +308,25 @@ def export_archive(
             for log in operation_logs
         ]
     }
+    schemas_document = {
+        "custom_fields": [
+            {
+                "card_type": definition.card_type,
+                "key": definition.field_key,
+                "position": definition.position
+            }
+            for definition in field_definitions
+        ],
+        "custom_relations": [
+            {
+                "card_type": definition.card_type,
+                "forward_label": definition.forward_label,
+                "inverse_label": definition.inverse_label,
+                "position": definition.position
+            }
+            for definition in relation_definitions
+        ]
+    }
 
     buffer = BytesIO()
     with zipfile.ZipFile(
@@ -275,6 +346,10 @@ def export_archive(
         archive.writestr(
             "analytics.json",
             _json_bytes(analytics_document)
+        )
+        archive.writestr(
+            "card-schemas.json",
+            _json_bytes(schemas_document)
         )
         if nav_layout is not None:
             archive.writestr(
@@ -362,6 +437,11 @@ def parse_archive(archive_bytes: bytes) -> ParsedArchive:
                 analytics = AnalyticsDocument.model_validate_json(
                     _read_archive_member(archive, "analytics.json")
                 )
+            schemas = SchemasDocument()
+            if "card-schemas.json" in archive.namelist():
+                schemas = SchemasDocument.model_validate_json(
+                    _read_archive_member(archive, "card-schemas.json")
+                )
     except HTTPException:
         raise
     except zipfile.BadZipFile as error:
@@ -379,7 +459,8 @@ def parse_archive(archive_bytes: bytes) -> ParsedArchive:
         manifest=manifest,
         cards=cards_document.cards,
         nav_layout=nav_layout,
-        analytics=analytics
+        analytics=analytics,
+        schemas=schemas
     )
 
 
@@ -551,6 +632,48 @@ def _validate_analytics(parsed: ParsedArchive) -> None:
             )
 
 
+def _validate_schemas(parsed: ParsedArchive) -> None:
+    """
+    @brief Validate imported category schema definitions
+
+    @return None
+    """
+
+    field_keys: set[tuple[str, str]] = set()
+    for field in parsed.schemas.custom_fields:
+        if get_entity_type(field.card_type) is None:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                detail="压缩包字段定义包含未知对象类型"
+            )
+        identity = (field.card_type, field.key)
+        if identity in field_keys:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                detail="压缩包中存在重复字段定义"
+            )
+        field_keys.add(identity)
+
+    relation_keys: set[tuple[str, str, str]] = set()
+    for relation in parsed.schemas.custom_relations:
+        if get_entity_type(relation.card_type) is None:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                detail="压缩包因缘定义包含未知对象类型"
+            )
+        identity = (
+            relation.card_type,
+            relation.forward_label,
+            relation.inverse_label
+        )
+        if identity in relation_keys:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                detail="压缩包中存在重复因缘定义"
+            )
+        relation_keys.add(identity)
+
+
 def _as_utc(value: datetime) -> datetime:
     """
     @brief Normalize imported timestamps to timezone-aware UTC
@@ -576,10 +699,13 @@ def import_archive(
     parsed = parse_archive(archive_bytes)
     _validate_archive_cards(parsed)
     _validate_analytics(parsed)
+    _validate_schemas(parsed)
 
     try:
         session.execute(delete(CardRelation))
         session.execute(delete(Card))
+        session.execute(delete(CustomFieldDefinition))
+        session.execute(delete(CustomRelationDefinition))
         session.execute(delete(VisitEvent))
         session.execute(delete(OperationLog))
         session.flush()
@@ -650,6 +776,27 @@ def import_archive(
         ]
         session.add_all(imported_visits)
         session.add_all(imported_operations)
+        session.add_all(
+            [
+                CustomFieldDefinition(
+                    card_type=field.card_type,
+                    field_key=field.key,
+                    position=field.position
+                )
+                for field in parsed.schemas.custom_fields
+            ]
+        )
+        session.add_all(
+            [
+                CustomRelationDefinition(
+                    card_type=relation.card_type,
+                    forward_label=relation.forward_label,
+                    inverse_label=relation.inverse_label,
+                    position=relation.position
+                )
+                for relation in parsed.schemas.custom_relations
+            ]
+        )
         record_operation(
             session=session,
             action="import",

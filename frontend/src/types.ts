@@ -74,6 +74,29 @@ export interface Card
 }
 
 
+export interface CustomFieldDefinition
+{
+    key: string;
+    position: number;
+}
+
+
+export interface CustomRelationDefinition
+{
+    forward_label: string;
+    inverse_label: string;
+    position: number;
+}
+
+
+export interface CardTypeSchema
+{
+    card_type: string;
+    custom_fields: CustomFieldDefinition[];
+    custom_relations: CustomRelationDefinition[];
+}
+
+
 export interface LinkedCardDraft
 {
     card_type: string;
@@ -103,6 +126,11 @@ export interface CardWritePayload
     summary?: string;
     custom_fields?: CustomField[];
     relations?: RelationInput[];
+    removed_field_keys?: string[];
+    removed_custom_relations?: {
+        forward_label: string;
+        inverse_label: string;
+    }[];
 }
 
 

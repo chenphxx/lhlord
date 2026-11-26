@@ -5,9 +5,15 @@ from uuid import UUID
 
 from fastapi import HTTPException, status
 from sqlalchemy import delete, or_, select
-from sqlalchemy.orm import Session, joinedload, selectinload
+from sqlalchemy.orm import Session, aliased, joinedload, selectinload
 
 from app.analytics import record_operation
+from app.card_schema import (
+    remove_category_fields,
+    remove_custom_relation_definitions,
+    sync_card_fields,
+    sync_custom_relation_definitions
+)
 from app.catalog import get_entity_type, get_relation_preset
 from app.models import Card, CardRelation
 from app.schemas import (
@@ -20,6 +26,188 @@ from app.schemas import (
     RelatedCard,
     RelationInput
 )
+
+
+def _field_value_map(
+    fields: list[dict[str, str]]
+) -> dict[str, str]:
+    """
+    @brief Build a custom-field value map
+
+    @return Field values keyed by name
+    """
+
+    return {
+        field.get("key", ""): field.get("value", "")
+        for field in fields
+        if field.get("key")
+    }
+
+
+def _basic_changes(
+    before: dict[str, str],
+    after: dict[str, str]
+) -> list[dict[str, str | None]]:
+    """
+    @brief Build field-level changes for standard card attributes
+
+    @return Change descriptors
+    """
+
+    changes: list[dict[str, str | None]] = []
+    labels = {
+        "name": "名称",
+        "icon": "图标",
+        "summary": "简介"
+    }
+    for key, label in labels.items():
+        before_value = before.get(key, "")
+        after_value = after.get(key, "")
+        if before_value == after_value:
+            continue
+        changes.append(
+            {
+                "field": label,
+                "before": before_value,
+                "after": after_value
+            }
+        )
+    return changes
+
+
+def _custom_field_changes(
+    before: dict[str, str],
+    after: dict[str, str]
+) -> list[dict[str, str | None]]:
+    """
+    @brief Build field-level changes for custom fields
+
+    @return Change descriptors
+    """
+
+    changes: list[dict[str, str | None]] = []
+    ordered_keys = list(after)
+    ordered_keys.extend(
+        key
+        for key in before
+        if key not in after
+    )
+    for key in ordered_keys:
+        before_value = before.get(key) if key in before else None
+        after_value = after.get(key) if key in after else None
+        if before_value == after_value:
+            continue
+        changes.append(
+            {
+                "field": f"自定义字段「{key}」",
+                "before": before_value,
+                "after": after_value
+            }
+        )
+    return changes
+
+
+def _schema_field_changes(
+    new_keys: list[str],
+    affected_cards: int
+) -> list[dict[str, str]]:
+    """
+    @brief Describe category field definitions introduced by a card change
+
+    @return Change descriptors
+    """
+
+    return [
+        {
+            "field": f"类别字段「{key}」",
+            "before": "未定义",
+            "after": f"已新增并同步到 {affected_cards} 张同类卡片"
+        }
+        for key in new_keys
+    ]
+
+
+def _relation_values(
+    session: Session,
+    card_id: UUID
+) -> list[dict[str, str]]:
+    """
+    @brief Load human-readable outgoing relationship values
+
+    @return Relationship descriptors
+    """
+
+    target_card = aliased(Card)
+    rows = session.execute(
+        select(
+            CardRelation.preset_key,
+            CardRelation.forward_label,
+            target_card.name
+        )
+        .join(
+            target_card,
+            target_card.id == CardRelation.target_card_id
+        )
+        .where(CardRelation.source_card_id == card_id)
+        .order_by(CardRelation.position.asc())
+    ).all()
+    return [
+        {
+            "preset_key": preset_key or "",
+            "label": forward_label,
+            "target": target_name
+        }
+        for preset_key, forward_label, target_name in rows
+    ]
+
+
+def _relation_changes(
+    before: list[dict[str, str]],
+    after: list[dict[str, str]]
+) -> list[dict[str, str]]:
+    """
+    @brief Compare outgoing relationship display values
+
+    @return Relationship changes
+    """
+
+    def identity(relation: dict[str, str]) -> tuple[str, str, str]:
+        return (
+            relation["preset_key"],
+            relation["label"],
+            relation["target"]
+        )
+
+    before_map = {
+        identity(relation): relation
+        for relation in before
+    }
+    after_map = {
+        identity(relation): relation
+        for relation in after
+    }
+    changes: list[dict[str, str]] = []
+    for relation_id, relation in before_map.items():
+        if relation_id in after_map:
+            continue
+        changes.append(
+            {
+                "field": f"关联「{relation['label']}」",
+                "before": relation["target"],
+                "after": "未关联"
+            }
+        )
+    for relation_id, relation in after_map.items():
+        if relation_id in before_map:
+            continue
+        changes.append(
+            {
+                "field": f"关联「{relation['label']}」",
+                "before": "未关联",
+                "after": relation["target"]
+            }
+        )
+    return changes
 
 
 def _normalize_custom_fields(
@@ -163,6 +351,48 @@ def _resolve_related_card(
     target = _build_linked_card(relation_input.new_target)
     session.add(target)
     session.flush()
+    field_sync = sync_card_fields(
+        session=session,
+        card_type=target.card_type,
+        current_card_id=target.id,
+        incoming_fields=target.custom_fields
+    )
+    target.custom_fields = field_sync.fields
+    entity_type = get_entity_type(target.card_type)
+    record_operation(
+        session=session,
+        action="create",
+        entity_type=target.card_type,
+        entity_id=target.id,
+        summary=(
+            f"新建{entity_type.name}「{target.name}」"
+            if entity_type
+            else f"新建对象「{target.name}」"
+        ),
+        details={
+            "changes": [
+                *_basic_changes(
+                    {},
+                    {
+                        "name": target.name,
+                        "icon": target.icon,
+                        "summary": target.summary
+                    }
+                ),
+                *_custom_field_changes(
+                    {},
+                    _field_value_map(target.custom_fields)
+                ),
+                *_schema_field_changes(
+                    field_sync.new_keys,
+                    field_sync.affected_cards
+                )
+            ],
+            "new_category_fields": field_sync.new_keys,
+            "affected_cards": field_sync.affected_cards,
+            "relation_count": 0
+        }
+    )
     return target
 
 
@@ -498,12 +728,49 @@ def create_card(
         session.add(card)
         session.flush()
         card_id = card.id
+        field_sync = sync_card_fields(
+            session=session,
+            card_type=card.card_type,
+            current_card_id=card.id,
+            incoming_fields=card.custom_fields
+        )
+        card.custom_fields = field_sync.fields
         _create_relations(
             session=session,
             source_card=card,
             relation_inputs=payload.relations
         )
+        sync_custom_relation_definitions(
+            session=session,
+            card_type=card.card_type
+        )
         entity_type = get_entity_type(card.card_type)
+        relation_values = _relation_values(
+            session=session,
+            card_id=card.id
+        )
+        changes = [
+            *_basic_changes(
+                {},
+                {
+                    "name": card.name,
+                    "icon": card.icon,
+                    "summary": card.summary
+                }
+            ),
+            *_custom_field_changes(
+                {},
+                _field_value_map(card.custom_fields)
+            ),
+            *_schema_field_changes(
+                field_sync.new_keys,
+                field_sync.affected_cards
+            ),
+            *_relation_changes(
+                [],
+                relation_values
+            )
+        ]
         record_operation(
             session=session,
             action="create",
@@ -515,6 +782,9 @@ def create_card(
                 else f"新建对象「{card.name}」"
             ),
             details={
+                "changes": changes,
+                "new_category_fields": field_sync.new_keys,
+                "affected_cards": field_sync.affected_cards,
                 "relation_count": len(payload.relations)
             }
         )
@@ -549,7 +819,41 @@ def update_card(
     )
 
     card_id = card.id
+    before_basic = {
+        "name": card.name,
+        "icon": card.icon,
+        "summary": card.summary
+    }
+    before_fields = _field_value_map(card.custom_fields)
+    before_relations = _relation_values(
+        session=session,
+        card_id=card.id
+    )
     try:
+        removed_field_keys = {
+            key.strip()
+            for key in (payload.removed_field_keys or [])
+            if key.strip()
+        }
+        removed_relation_pairs = [
+            (
+                relation.forward_label,
+                relation.inverse_label
+            )
+            for relation in (payload.removed_custom_relations or [])
+        ]
+        field_removal = remove_category_fields(
+            session=session,
+            card_type=card.card_type,
+            field_keys=list(removed_field_keys)
+        )
+        relation_removal = remove_custom_relation_definitions(
+            session=session,
+            card_type=card.card_type,
+            relation_pairs=removed_relation_pairs
+        )
+        session.expire(card, ["outgoing_relations"])
+
         if payload.name is not None:
             card.name = payload.name.strip()
             if not card.name:
@@ -569,9 +873,19 @@ def update_card(
             card.summary = payload.summary.strip()
 
         if payload.custom_fields is not None:
-            card.custom_fields = _normalize_custom_fields(
-                payload.custom_fields
-            )
+            card.custom_fields = [
+                field
+                for field in _normalize_custom_fields(payload.custom_fields)
+                if field["key"] not in removed_field_keys
+            ]
+
+        field_sync = sync_card_fields(
+            session=session,
+            card_type=card.card_type,
+            current_card_id=card.id,
+            incoming_fields=card.custom_fields
+        )
+        card.custom_fields = field_sync.fields
 
         if payload.relations is not None:
             for relation in list(card.outgoing_relations):
@@ -583,18 +897,57 @@ def update_card(
                 relation_inputs=payload.relations
             )
 
+        sync_custom_relation_definitions(
+            session=session,
+            card_type=card.card_type
+        )
         entity_type = get_entity_type(card.card_type)
-        changed_sections = [
-            field_name
-            for field_name in (
-                "name",
-                "icon",
-                "summary",
-                "custom_fields",
-                "relations"
+        after_relations = _relation_values(
+            session=session,
+            card_id=card.id
+        )
+        changes = [
+            *_basic_changes(
+                before_basic,
+                {
+                    "name": card.name,
+                    "icon": card.icon,
+                    "summary": card.summary
+                }
+            ),
+            *_custom_field_changes(
+                before_fields,
+                _field_value_map(card.custom_fields)
+            ),
+            *_schema_field_changes(
+                field_sync.new_keys,
+                field_sync.affected_cards
+            ),
+            *_relation_changes(
+                before_relations,
+                after_relations
             )
-            if getattr(payload, field_name) is not None
         ]
+        for key in removed_field_keys:
+            changes.append(
+                {
+                    "field": f"类别字段「{key}」",
+                    "before": "已定义",
+                    "after": (
+                        f"已删除，更新 {field_removal.affected_cards} 张同类卡片"
+                    )
+                }
+            )
+        for forward_label, inverse_label in removed_relation_pairs:
+            changes.append(
+                {
+                    "field": f"类别因缘「{forward_label}」",
+                    "before": f"{forward_label} / {inverse_label}",
+                    "after": (
+                        f"已删除，清理 {relation_removal.removed_relations} 条关联"
+                    )
+                }
+            )
         record_operation(
             session=session,
             action="update",
@@ -606,7 +959,17 @@ def update_card(
                 else f"更新对象「{card.name}」"
             ),
             details={
-                "changed_sections": changed_sections
+                "changes": changes,
+                "new_category_fields": field_sync.new_keys,
+                "affected_cards": field_sync.affected_cards,
+                "removed_category_fields": sorted(removed_field_keys),
+                "removed_custom_relations": [
+                    {
+                        "forward_label": forward_label,
+                        "inverse_label": inverse_label
+                    }
+                    for forward_label, inverse_label in removed_relation_pairs
+                ]
             }
         )
         session.commit()
@@ -644,6 +1007,21 @@ def delete_card(
 
     card_type, card_name = card_row
     entity_type = get_entity_type(card_type)
+    card = session.get(Card, card_id)
+    before_basic = {
+        "name": card_name,
+        "icon": card.icon if card else "",
+        "summary": card.summary if card else ""
+    }
+    before_fields = (
+        _field_value_map(card.custom_fields)
+        if card
+        else {}
+    )
+    before_relations = _relation_values(
+        session=session,
+        card_id=card_id
+    )
     try:
         session.execute(
             delete(CardRelation).where(
@@ -665,7 +1043,23 @@ def delete_card(
                 f"删除{entity_type.name}「{card_name}」"
                 if entity_type
                 else f"删除对象「{card_name}」"
-            )
+            ),
+            details={
+                "changes": [
+                    *_basic_changes(
+                        before_basic,
+                        {}
+                    ),
+                    *_custom_field_changes(
+                        before_fields,
+                        {}
+                    ),
+                    *_relation_changes(
+                        before_relations,
+                        []
+                    )
+                ]
+            }
         )
         session.commit()
     except Exception:

@@ -1666,6 +1666,20 @@ button:disabled
 }
 
 
+.relation-empty-slot
+{
+    display: inline-flex;
+    min-height: 25px;
+    padding: 3px 9px;
+    border: 1px dashed rgba(128, 115, 103, 0.28);
+    border-radius: 999px;
+    color: var(--ink-faint);
+    background: rgba(255, 252, 244, 0.42);
+    font-size: 10px;
+    align-items: center;
+}
+
+
 .relation-chip
 {
     display: inline-flex;

@@ -3,6 +3,7 @@ import {
     createCard,
     deleteCard,
     exportCatalog,
+    getCardTypeSchema,
     getCards,
     getCatalog,
     getStats,
@@ -12,6 +13,7 @@ import {
 } from "./api";
 import type {
     Card,
+    CardTypeSchema,
     CardRelation,
     CardWritePayload,
     Catalog,
@@ -36,6 +38,7 @@ interface EditorRelation
     inverseLabel: string;
     targetCardId: string | null;
     newTarget: LinkedCardDraft | null;
+    isSchemaTemplate: boolean;
 }
 
 
@@ -44,11 +47,14 @@ interface EditorState
     mode: "create" | "edit";
     card: Card | null;
     type: EntityTypeDefinition;
+    schema: CardTypeSchema;
     name: string;
     icon: string;
     summary: string;
     customFields: CustomField[];
     relations: EditorRelation[];
+    removedFieldKeys: Set<string>;
+    removedCustomRelations: Map<string, { forwardLabel: string; inverseLabel: string }>;
     targetOptions: Map<string, RelatedCard[]>;
     loadingOptions: boolean;
     saving: boolean;
@@ -87,6 +93,7 @@ let currentCards: Card[] = [];
 let loadingCards = true;
 let loadError = "";
 let focusedCardId: string | null = null;
+let currentSchema: CardTypeSchema | null = null;
 let requestSequence = 0;
 let activeEditor: EditorState | null = null;
 let modalLayer: HTMLDivElement | null = null;
@@ -600,7 +607,28 @@ function renderRelationGroups(card: Card): string
             && relation.preset_key === "character_sect"
         )
     );
-    if (!visibleRelations.length)
+    const actualCustomPairs = new Set(
+        card.relations
+            .filter(
+                (relation) => (
+                    relation.direction === "outgoing"
+                    && relation.preset_key === null
+                )
+            )
+            .map(
+                (relation) => `${relation.label}\u0000${relation.inverse_label}`
+            )
+    );
+    const emptyCustomRelations = (
+        currentSchema?.card_type === card.card_type
+            ? currentSchema.custom_relations
+            : []
+    ).filter(
+        (definition) => !actualCustomPairs.has(
+            `${definition.forward_label}\u0000${definition.inverse_label}`
+        )
+    );
+    if (!visibleRelations.length && !emptyCustomRelations.length)
     {
         return `
             <div class="card-empty-note">
@@ -618,7 +646,7 @@ function renderRelationGroups(card: Card): string
         groups.set(relation.label, group);
     }
 
-    return [...groups.entries()]
+    const actualRelationMarkup = [...groups.entries()]
         .map(
             ([label, relations]) => `
                 <div class="relation-group">
@@ -651,6 +679,18 @@ function renderRelationGroups(card: Card): string
             `
         )
         .join("");
+    const templateMarkup = emptyCustomRelations
+        .map(
+            (definition) => `
+                <div class="relation-group">
+                    <h4>${escapeHtml(definition.forward_label)}</h4>
+                    <span class="relation-empty-slot">未关联</span>
+                </div>
+            `
+        )
+        .join("");
+
+    return actualRelationMarkup + templateMarkup;
 }
 
 
@@ -1430,12 +1470,18 @@ async function loadCurrentCards(): Promise<void>
 
     try
     {
-        const cards = await getCards(currentTypeId);
+        const [cards, schema] = await Promise.all(
+            [
+                getCards(currentTypeId),
+                getCardTypeSchema(currentTypeId)
+            ]
+        );
         if (sequence !== requestSequence)
         {
             return;
         }
         currentCards = cards;
+        currentSchema = schema;
     }
     catch (error)
     {
@@ -1444,6 +1490,7 @@ async function loadCurrentCards(): Promise<void>
             return;
         }
         currentCards = [];
+        currentSchema = null;
         loadError = errorMessage(error);
     }
     finally
@@ -1557,8 +1604,18 @@ function relationFromCard(relation: CardRelation): EditorRelation
         label: relation.label,
         inverseLabel: relation.inverse_label,
         targetCardId: relation.related_card.id,
-        newTarget: null
+        newTarget: null,
+        isSchemaTemplate: false
     };
+}
+
+
+function relationPairKey(
+    label: string,
+    inverseLabel: string
+): string
+{
+    return `${label.trim()}\u0000${inverseLabel.trim()}`;
 }
 
 
@@ -1571,21 +1628,109 @@ function openEditor(card: Card | null): void
 
     closeEditor();
     const entityType = categoryTypeForEditor(card);
+    const schema = currentSchema?.card_type === entityType.id
+        ? currentSchema
+        : {
+            card_type: entityType.id,
+            custom_fields: [],
+            custom_relations: []
+        };
+    const existingFieldValues = new Map(
+        (card?.custom_fields ?? []).map(
+            (field) => [
+                field.key,
+                field.value
+            ]
+        )
+    );
+    const customFields = schema.custom_fields.map(
+        (definition) => (
+            {
+                key: definition.key,
+                value: existingFieldValues.get(definition.key) ?? ""
+            }
+        )
+    );
+    const knownFieldKeys = new Set(
+        customFields.map((field) => field.key)
+    );
+    for (const field of card?.custom_fields ?? [])
+    {
+        if (!knownFieldKeys.has(field.key))
+        {
+            customFields.push(cloneFields([field])[0] ?? field);
+            knownFieldKeys.add(field.key);
+        }
+    }
+    const schemaRelationPairs = new Set(
+        schema.custom_relations.map(
+            (definition) => (
+                `${definition.forward_label}\u0000${definition.inverse_label}`
+            )
+        )
+    );
     const relations = card
         ? card.relations
             .filter((relation) => relation.direction === "outgoing")
-            .map(relationFromCard)
+            .map(
+                (relation) =>
+                {
+                    const draft = relationFromCard(relation);
+                    if
+                    (
+                        draft.presetKey === null
+                        && schemaRelationPairs.has(
+                            `${draft.label}\u0000${draft.inverseLabel}`
+                        )
+                    )
+                    {
+                        draft.isSchemaTemplate = true;
+                    }
+                    return draft;
+                }
+            )
         : [];
+    const customRelationPairs = new Set(
+        relations
+            .filter((relation) => relation.presetKey === null)
+            .map((relation) => `${relation.label}\u0000${relation.inverseLabel}`)
+    );
+    const fallbackTargetType = catalog.types.find(
+        (item) => item.id !== entityType.id
+    )?.id ?? entityType.id;
+    for (const definition of schema.custom_relations)
+    {
+        const pair = `${definition.forward_label}\u0000${definition.inverse_label}`;
+        if (customRelationPairs.has(pair))
+        {
+            continue;
+        }
+        relations.push(
+            {
+                localId: nextLocalRelationId++,
+                presetKey: null,
+                targetType: fallbackTargetType,
+                label: definition.forward_label,
+                inverseLabel: definition.inverse_label,
+                targetCardId: null,
+                newTarget: null,
+                isSchemaTemplate: true
+            }
+        );
+    }
 
     activeEditor = {
         mode: card ? "edit" : "create",
         card,
         type: entityType,
+        schema,
         name: card?.name ?? "",
         icon: card?.icon ?? entityType.default_icon,
         summary: card?.summary ?? "",
-        customFields: card ? cloneFields(card.custom_fields) : [],
+        customFields,
         relations,
+        removedFieldKeys: new Set(),
+        removedCustomRelations: new Map(),
         targetOptions: new Map(),
         loadingOptions: true,
         saving: false,
@@ -1791,6 +1936,14 @@ function renderCustomFieldRows(): string
                             aria-label="下移字段"
                         >↓</button>
                         <button
+                            class="mini-button"
+                            type="button"
+                            data-action="clear-field"
+                            data-field-index="${index}"
+                            aria-label="清空字段内容"
+                            title="清空字段内容"
+                        >清</button>
+                        <button
                             class="mini-button mini-button--danger"
                             type="button"
                             data-action="remove-field"
@@ -1852,12 +2005,13 @@ function renderSelectedTarget(relation: EditorRelation): string
                     data-relation-id="${relation.localId}"
                 >修改</button>
                 <button
-                    class="mini-button mini-button--danger"
+                    class="mini-button"
                     type="button"
-                    data-action="remove-relation"
+                    data-action="clear-relation"
                     data-relation-id="${relation.localId}"
-                    aria-label="移除关联"
-                >×</button>
+                    aria-label="清空关联"
+                    title="清空当前卡片的关联对象"
+                >清</button>
             </div>
         `;
     }
@@ -1885,12 +2039,13 @@ function renderSelectedTarget(relation: EditorRelation): string
             >
             <strong>${escapeHtml(selectedCard.name)}</strong>
             <button
-                class="mini-button mini-button--danger"
+                class="mini-button"
                 type="button"
-                data-action="remove-relation"
+                data-action="clear-relation"
                 data-relation-id="${relation.localId}"
-                aria-label="移除关联"
-            >×</button>
+                aria-label="清空关联"
+                title="清空当前卡片的关联对象"
+            >清</button>
         </div>
     `;
 }
@@ -2196,15 +2351,16 @@ function renderCustomRelations(): string
                         <section class="relation-block relation-block--custom">
                             <div class="relation-block-heading">
                                 <div>
-                                    <h4>自定义因缘</h4>
-                                    <p>可指向任意对象类型</p>
+                                    <h4>${relation.isSchemaTemplate ? "类别因缘" : "自定义因缘"}</h4>
+                                    <p>${relation.isSchemaTemplate ? "同类对象共用此因缘，本卡可选择关联对象" : "可指向任意对象类型"}</p>
                                 </div>
                                 <button
                                     class="mini-button mini-button--danger"
                                     type="button"
                                     data-action="remove-relation"
                                     data-relation-id="${relation.localId}"
-                                    aria-label="删除自定义关系"
+                                    aria-label="${relation.isSchemaTemplate ? "删除类别因缘" : "删除自定义关系"}"
+                                    title="${relation.isSchemaTemplate ? "从同类所有卡片中删除该因缘" : "移除关联"}"
                                 >×</button>
                             </div>
                             <div class="custom-relation-grid">
@@ -2215,6 +2371,7 @@ function renderCustomRelations(): string
                                         maxlength="32"
                                         value="${escapeHtml(relation.label)}"
                                         data-custom-label="${relation.localId}"
+                                        ${relation.isSchemaTemplate ? "readonly" : ""}
                                     >
                                 </label>
                                 <label class="form-label">
@@ -2224,6 +2381,7 @@ function renderCustomRelations(): string
                                         maxlength="32"
                                         value="${escapeHtml(relation.inverseLabel)}"
                                         data-custom-inverse-label="${relation.localId}"
+                                        ${relation.isSchemaTemplate ? "readonly" : ""}
                                     >
                                 </label>
                                 <label class="form-label">
@@ -2451,11 +2609,48 @@ function handleEditorClick(event: MouseEvent): void
     }
     if (action === "remove-field")
     {
-        activeEditor.customFields.splice(
-            Number(button.dataset.fieldIndex),
-            1
+        const index = Number(button.dataset.fieldIndex);
+        const field = activeEditor.customFields[index];
+        if (!field)
+        {
+            return;
+        }
+        const key = field.key.trim();
+        const isShared = activeEditor.schema.custom_fields.some(
+            (definition) => definition.key === key
+        );
+        if
+        (
+            isShared
+            && !window.confirm(
+                `字段「${key}」由同类卡片共享。删除后会从所有${activeEditor.type.name}卡片中移除，是否继续？`
+            )
+        )
+        {
+            return;
+        }
+        if (isShared)
+        {
+            activeEditor.removedFieldKeys.add(key);
+        }
+        activeEditor.customFields = activeEditor.customFields.filter(
+            (item, itemIndex) => isShared
+                ? item.key.trim() !== key
+                : itemIndex !== index
         );
         renderEditor();
+        return;
+    }
+    if (action === "clear-field")
+    {
+        const field = activeEditor.customFields[
+            Number(button.dataset.fieldIndex)
+        ];
+        if (field)
+        {
+            field.value = "";
+            renderEditor();
+        }
         return;
     }
     if (action === "move-field-up" || action === "move-field-down")
@@ -2482,7 +2677,8 @@ function handleEditorClick(event: MouseEvent): void
                 label: "关联",
                 inverseLabel: "被关联",
                 targetCardId: null,
-                newTarget: null
+                newTarget: null,
+                isSchemaTemplate: false
             }
         );
         renderEditor();
@@ -2491,10 +2687,84 @@ function handleEditorClick(event: MouseEvent): void
     if (action === "remove-relation")
     {
         const relationId = Number(button.dataset.relationId);
+        const relation = relationById(relationId);
+        if (!relation)
+        {
+            return;
+        }
+        const categoryRelation = (
+            relation.isSchemaTemplate
+            && activeEditor.schema.custom_relations.some(
+                (definition) => (
+                    relationPairKey(
+                        definition.forward_label,
+                        definition.inverse_label
+                    ) === relationPairKey(
+                        relation.label,
+                        relation.inverseLabel
+                    )
+                )
+            )
+        );
+        if
+        (
+            categoryRelation
+            && !window.confirm(
+                `因缘「${relation.label}」由同类卡片共享。删除后会移除所有${activeEditor.type.name}卡片中的该因缘及实际关联，是否继续？`
+            )
+        )
+        {
+            return;
+        }
+        if (categoryRelation)
+        {
+            activeEditor.removedCustomRelations.set(
+                relationPairKey(
+                    relation.label,
+                    relation.inverseLabel
+                ),
+                {
+                    forwardLabel: relation.label,
+                    inverseLabel: relation.inverseLabel
+                }
+            );
+        }
         activeEditor.relations = activeEditor.relations.filter(
-            (relation) => relation.localId !== relationId
+            (item) => (
+                item.localId !== relationId
+                && (
+                    !categoryRelation
+                    || relationPairKey(item.label, item.inverseLabel)
+                        !== relationPairKey(
+                            relation.label,
+                            relation.inverseLabel
+                        )
+                )
+            )
         );
         activeEditor.editingNewTargetIds.delete(relationId);
+        renderEditor();
+        return;
+    }
+    if (action === "clear-relation")
+    {
+        const relation = relationById(Number(button.dataset.relationId));
+        if (!relation)
+        {
+            return;
+        }
+        if (!relation.isSchemaTemplate)
+        {
+            activeEditor.relations = activeEditor.relations.filter(
+                (item) => item.localId !== relation.localId
+            );
+        }
+        else
+        {
+            relation.targetCardId = null;
+            relation.newTarget = null;
+            activeEditor.editingNewTargetIds.delete(relation.localId);
+        }
         renderEditor();
         return;
     }
@@ -2630,7 +2900,8 @@ function addPresetExisting(presetKey: string): void
             label: preset.label,
             inverseLabel: preset.inverse_label,
             targetCardId,
-            newTarget: null
+            newTarget: null,
+            isSchemaTemplate: false
         }
     );
     renderEditor();
@@ -2664,7 +2935,8 @@ function startNewPresetTarget(presetKey: string): void
         label: preset.label,
         inverseLabel: preset.inverse_label,
         targetCardId: null,
-        newTarget: blankLinkedCard(preset.target_type)
+        newTarget: blankLinkedCard(preset.target_type),
+        isSchemaTemplate: false
     };
     activeEditor.relations.push(relation);
     activeEditor.editingNewTargetIds.add(relation.localId);
@@ -2823,6 +3095,13 @@ function handleEditorInput(event: Event): void
         if (field)
         {
             field[fieldProperty as "key" | "value"] = input.value;
+            if (
+                fieldProperty === "key"
+                && activeEditor.removedFieldKeys.has(input.value.trim())
+            )
+            {
+                activeEditor.removedFieldKeys.delete(input.value.trim());
+            }
         }
         return;
     }
@@ -3092,20 +3371,48 @@ function buildCardPayload(editor: EditorState): CardWritePayload
         throw new Error("请填写对象名称");
     }
 
-    const customFields = normalizeFields(editor.customFields);
+    const customFields = normalizeFields(editor.customFields).filter(
+        (field) => !editor.removedFieldKeys.has(field.key)
+    );
     const invalidField = customFields.find((field) => !field.key);
     if (invalidField)
     {
         throw new Error("自定义字段名称不能为空");
     }
 
-    const relations = editor.relations.map(relationInputFromDraft);
+    const relations = editor.relations
+        .filter(
+            (relation) => !editor.removedCustomRelations.has(
+                relationPairKey(
+                    relation.label,
+                    relation.inverseLabel
+                )
+            )
+        )
+        .filter(
+            (relation) => !(
+                relation.isSchemaTemplate
+                && !relation.targetCardId
+                && !relation.newTarget
+            )
+        )
+        .map(relationInputFromDraft);
     const payload: CardWritePayload = {
         name,
         icon: editor.icon,
         summary: editor.summary.trim(),
         custom_fields: customFields,
-        relations
+        relations,
+        removed_field_keys: [...editor.removedFieldKeys],
+        removed_custom_relations: [...editor.removedCustomRelations.values()]
+            .map(
+                (relation) => (
+                    {
+                        forward_label: relation.forwardLabel,
+                        inverse_label: relation.inverseLabel
+                    }
+                )
+            )
     };
     if (editor.mode === "create")
     {

@@ -21,8 +21,9 @@ from app.archive import (
     import_archive
 )
 from app.catalog import catalog_payload
+from app.card_schema import get_card_type_schema
 from app.database import get_db
-from app.schemas import CardCreate, CardOut, CardsResponse, CardUpdate
+from app.schemas import CardCreate, CardOut, CardsResponse, CardTypeSchemaOut, CardUpdate
 from app.services import (
     card_to_response,
     create_card,
@@ -120,6 +121,26 @@ def get_cards(
             session=session,
             card_type=card_type
         )
+    )
+
+
+@router.get(
+    "/card-types/{card_type}/schema",
+    response_model=CardTypeSchemaOut
+)
+def get_schema(
+    card_type: str,
+    session: Session = Depends(get_db)
+) -> CardTypeSchemaOut:
+    """
+    @brief Return shared custom-field and relationship definitions
+
+    @return Card type schema
+    """
+
+    return get_card_type_schema(
+        session=session,
+        card_type=card_type
     )
 
 

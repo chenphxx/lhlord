@@ -442,7 +442,8 @@ def test_export_and_import_archive_round_trip(
             "manifest.json",
             "cards.json",
             "ui-settings.json",
-            "analytics.json"
+            "analytics.json",
+            "card-schemas.json"
         }
         cards_document = json.loads(archive.read("cards.json"))
         assert len(cards_document["cards"]) == 3

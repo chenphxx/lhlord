@@ -3,7 +3,7 @@
 from datetime import datetime, timezone
 from uuid import UUID, uuid4
 
-from sqlalchemy import CheckConstraint, DateTime, ForeignKey, Index, Integer, String, Text, Uuid, func
+from sqlalchemy import CheckConstraint, DateTime, ForeignKey, Index, Integer, String, Text, UniqueConstraint, Uuid, func
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import JSON
@@ -224,6 +224,97 @@ class OperationLog(Base):
         JSON().with_variant(JSONB, "postgresql"),
         nullable=False,
         default=dict
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+        server_default=func.now()
+    )
+
+
+class CustomFieldDefinition(Base):
+    """A category-wide custom field shared by cards of one type."""
+
+    __tablename__ = "custom_field_definitions"
+    __table_args__ = (
+        UniqueConstraint(
+            "card_type",
+            "field_key",
+            name="uq_custom_field_definitions_type_key"
+        ),
+        Index(
+            "ix_custom_field_definitions_type_position",
+            "card_type",
+            "position"
+        )
+    )
+
+    id: Mapped[UUID] = mapped_column(
+        Uuid(as_uuid=True),
+        primary_key=True,
+        default=uuid4
+    )
+    card_type: Mapped[str] = mapped_column(
+        String(32),
+        nullable=False
+    )
+    field_key: Mapped[str] = mapped_column(
+        String(30),
+        nullable=False
+    )
+    position: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=0
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+        server_default=func.now()
+    )
+
+
+class CustomRelationDefinition(Base):
+    """A category-wide custom relationship available on every card."""
+
+    __tablename__ = "custom_relation_definitions"
+    __table_args__ = (
+        UniqueConstraint(
+            "card_type",
+            "forward_label",
+            "inverse_label",
+            name="uq_custom_relation_definitions_type_labels"
+        ),
+        Index(
+            "ix_custom_relation_definitions_type_position",
+            "card_type",
+            "position"
+        )
+    )
+
+    id: Mapped[UUID] = mapped_column(
+        Uuid(as_uuid=True),
+        primary_key=True,
+        default=uuid4
+    )
+    card_type: Mapped[str] = mapped_column(
+        String(32),
+        nullable=False
+    )
+    forward_label: Mapped[str] = mapped_column(
+        String(32),
+        nullable=False
+    )
+    inverse_label: Mapped[str] = mapped_column(
+        String(32),
+        nullable=False
+    )
+    position: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=0
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

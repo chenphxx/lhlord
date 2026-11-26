@@ -129,6 +129,8 @@ class CardUpdate(BaseModel):
     summary: str | None = Field(default=None, max_length=1000)
     custom_fields: list[CustomField] | None = None
     relations: list[RelationInput] | None = None
+    removed_field_keys: list[str] | None = None
+    removed_custom_relations: list["CustomRelationRef"] | None = None
 
     @field_validator("name", "icon", "summary")
     @classmethod
@@ -144,6 +146,27 @@ class CardUpdate(BaseModel):
         if value is None:
             return None
         return value.strip()
+
+
+class CustomRelationRef(BaseModel):
+    """Identity of a category custom relationship definition."""
+
+    forward_label: str = Field(min_length=1, max_length=32)
+    inverse_label: str = Field(min_length=1, max_length=32)
+
+    @field_validator("forward_label", "inverse_label")
+    @classmethod
+    def strip_relation_labels(cls, value: str) -> str:
+        """
+        @brief Trim custom relationship definition labels
+
+        @return Trimmed label
+        """
+
+        return value.strip()
+
+
+CardUpdate.model_rebuild()
 
 
 class RelatedCard(BaseModel):
@@ -187,3 +210,26 @@ class CardsResponse(BaseModel):
     """Card list response."""
 
     items: list[CardOut]
+
+
+class CustomFieldDefinitionOut(BaseModel):
+    """One category-wide custom field schema entry."""
+
+    key: str
+    position: int
+
+
+class CustomRelationDefinitionOut(BaseModel):
+    """One category-wide custom relationship schema entry."""
+
+    forward_label: str
+    inverse_label: str
+    position: int
+
+
+class CardTypeSchemaOut(BaseModel):
+    """Shared custom fields and custom relation slots for a card type."""
+
+    card_type: str
+    custom_fields: list[CustomFieldDefinitionOut]
+    custom_relations: list[CustomRelationDefinitionOut]

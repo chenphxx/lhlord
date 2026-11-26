@@ -1,5 +1,6 @@
 import type {
     Card,
+    CardTypeSchema,
     CardWritePayload,
     Catalog,
     StatsSummary,
@@ -262,6 +263,17 @@ export async function getCards(cardType: string): Promise<Card[]>
         `/api/cards?type=${encodeURIComponent(cardType)}`
     );
     return payload.items;
+}
+
+
+export async function getCardTypeSchema
+(
+    cardType: string
+): Promise<CardTypeSchema>
+{
+    return request<CardTypeSchema>(
+        `/api/card-types/${encodeURIComponent(cardType)}/schema`
+    );
 }
 
 
